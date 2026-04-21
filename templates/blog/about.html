@@ -1,0 +1,97 @@
+{% extends 'share_layout/base.html' %}
+{% load blog_tags %}
+{% load i18n %}
+
+{% block header %}
+    <title>{{ seo_title|default:"关于我" }}</title>
+    <meta name="description" content="{{ seo_description|default:"个人介绍" }}"/>
+    <meta name="keywords" content="{{ seo_keywords|default:"关于,个人介绍" }}"/>
+{% endblock %}
+
+{% block content %}
+    <div class="mx-auto max-w-4xl px-4 py-8 lg:px-6 lg:py-12">
+        {# 页面标题 #}
+        <div class="mb-8 text-center">
+            <h1 class="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                关于我
+            </h1>
+            <p class="mt-2 text-muted-foreground">
+                欢迎来到我的个人空间
+            </p>
+        </div>
+
+        {# 主要内容区域 #}
+        <div class="rounded-xl border border-border bg-card p-6 shadow-sm lg:p-8">
+            <div class="prose prose-slate dark:prose-invert max-w-none">
+                <h2>👋 你好！</h2>
+                <p>
+                    感谢您访问我的博客。这里是我分享技术心得、记录生活点滴的地方。
+                </p>
+
+                <h3>📝 关于这个博客</h3>
+                <p>
+                    这个博客主要用于：
+                </p>
+                <ul>
+                    <li>分享编程和技术学习经验</li>
+                    <li>记录日常生活中的思考和感悟</li>
+                    <li>探索新技术和最佳实践</li>
+                    <li>与志同道合的朋友交流</li>
+                </ul>
+
+                <h3>💡 技术栈</h3>
+                <p>
+                    本网站基于以下技术构建：
+                </p>
+                <ul>
+                    <li><strong>后端</strong>: Django + Python</li>
+                    <li><strong>前端</strong>: Tailwind CSS + Alpine.js</li>
+                    <li><strong>数据库</strong>: SQLite / MySQL</li>
+                    <li><strong>搜索引擎</strong>: Whoosh / Elasticsearch</li>
+                </ul>
+
+                <h3>🌟 兴趣爱好</h3>
+                <p>
+                    除了编程，我还喜欢：
+                </p>
+                <ul>
+                    <li>阅读技术书籍和文章</li>
+                    <li>探索开源项目</li>
+                    <li>摄影和旅行</li>
+                    <li>音乐和电影</li>
+                </ul>
+
+                <h3>📬 联系方式</h3>
+                <p>
+                    如果您有任何问题或建议，欢迎通过以下方式联系我：
+                </p>
+                <ul>
+                    <li>Email: your.email@example.com</li>
+                    <li>GitHub: <a href="https://github.com/yourusername" target="_blank" rel="noopener">@yourusername</a></li>
+                    <li>Twitter: <a href="https://twitter.com/yourusername" target="_blank" rel="noopener">@yourusername</a></li>
+                </ul>
+
+                <blockquote>
+                    <p>"代码是诗，bug是生活的调味剂。"</p>
+                </blockquote>
+
+                <hr/>
+
+                <p class="text-sm text-muted-foreground">
+                    最后更新：{% now "Y年m月d日" %}
+                </p>
+            </div>
+        </div>
+
+        {# 返回按钮 #}
+        <div class="mt-6 text-center">
+            <a href="{% url 'blog:index' %}" 
+               class="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-2.5 text-sm font-medium text-foreground shadow-sm transition-all hover:bg-secondary">
+                <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                返回首页
+            </a>
+        </div>
+    </div>
+{% endblock %}

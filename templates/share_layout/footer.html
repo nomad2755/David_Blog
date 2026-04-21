@@ -1,0 +1,65 @@
+{% load i18n %}
+{% load blog_tags %}
+<footer class="mt-12 border-t border-border/60 bg-muted/30">
+    <div class="mx-auto max-w-6xl px-4 lg:px-6">
+        {# Main footer content #}
+        <div class="flex flex-col items-center gap-5 py-8 md:flex-row md:justify-between">
+            {# Left: Brand + description #}
+            <div class="flex flex-col items-center gap-1.5 md:items-start">
+                <a href="/" class="text-sm font-bold tracking-tight text-foreground transition-colors hover:text-primary">
+                    {{ SITE_NAME }}
+                </a>
+                <p class="text-xs text-muted-foreground leading-relaxed">
+                    {{ SITE_DESCRIPTION|default:"专注于技术分享" }}
+                </p>
+            </div>
+
+            {# Center: Navigation links #}
+            <nav class="flex flex-wrap items-center justify-center gap-x-5 gap-y-1">
+                <a href="{% url 'blog:index' %}" class="text-xs text-muted-foreground transition-colors hover:text-primary">
+                    {% trans 'index' %}
+                </a>
+                <a href="{% url 'blog:archives' %}" class="text-xs text-muted-foreground transition-colors hover:text-primary">
+                    归档
+                </a>
+
+                <a href="/feed" class="text-xs text-muted-foreground transition-colors hover:text-primary" target="_blank" rel="noopener">
+                    RSS
+                </a>
+
+            </nav>
+
+            {# Right: Social icons #}
+            <div class="flex items-center gap-2">
+
+                <a href="/feed"
+                   aria-label="RSS"
+                   class="flex size-8 items-center justify-center rounded-lg bg-secondary text-muted-foreground transition-all hover:bg-primary hover:text-primary-foreground">
+                    <svg class="size-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M6.18 15.64a2.18 2.18 0 012.18 2.18C8.36 19 7.38 20 6.18 20A2.18 2.18 0 014 17.82a2.18 2.18 0 012.18-2.18M4 4.44A15.56 15.56 0 0119.56 20h-2.83A12.73 12.73 0 004 7.27V4.44m0 5.66a9.9 9.9 0 019.9 9.9h-2.83A7.07 7.07 0 004 12.93V10.1z"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+
+        {# Bottom bar #}
+        <div class="flex flex-col items-center justify-between gap-2 border-t border-border/60 py-4 text-[11px] text-muted-foreground md:flex-row md:gap-0">
+            <p class="flex items-center gap-1">
+                Made with
+                <svg class="mx-0.5 size-2.5 text-red-500 animate-[heartbeat_1.2s_ease-in-out_infinite]" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
+                </svg>
+                for sharing knowledge
+            </p>
+            <div class="flex items-center gap-4">
+                {% if BEIAN_CODE %}
+                    <a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow"
+                       class="text-muted-foreground transition-colors hover:text-primary">
+                        {{ BEIAN_CODE }}
+                    </a>
+                {% endif %}
+                <span>&copy; {% now "Y" %} {{ SITE_NAME }}</span>
+            </div>
+        </div>
+    </div>
+</footer>
