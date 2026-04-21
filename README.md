@@ -172,18 +172,3 @@ npm run dev
 ## 📄 许可证
 
 本项目基于 [MIT License](LICENSE) 开源。
-
----
-
-## 🙏 鸣谢
-
-特别感谢 **JetBrains** 为本项目提供的免费开源许可证。
-
-<p align="center">
-  <a href="https://www.jetbrains.com/?from=DjangoBlog">
-    <img src="/docs/imgs/pycharm_logo.png" width="150" alt="JetBrains Logo">
-  </a>
-</p>
-
----
-> 如果本项目帮助到了你，请在[这里](https://github.com/liangliangyy/DjangoBlog/issues/214)留下你的网址，让更多的人看到。您的回复将会是我继续更新维护下去的动力。

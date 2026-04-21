@@ -172,18 +172,3 @@ We warmly welcome contributions of any kind! If you have great ideas or have fou
 ## 📄 License
 
 This project is open-sourced under the [MIT License](LICENSE).
-
----
-
-## 🙏 Acknowledgements
-
-A special thanks to **JetBrains** for providing a free open-source license for this project.
-
-<p align="center">
-  <a href="https://www.jetbrains.com/?from=DjangoBlog">
-    <img src="/docs/imgs/pycharm_logo.png" width="150" alt="JetBrains Logo">
-  </a>
-</p>
-
----
-> If this project has helped you, please leave your website URL [here](https://github.com/liangliangyy/DjangoBlog/issues/214) to let more people see it. Your feedback is the driving force for my continued updates and maintenance.
