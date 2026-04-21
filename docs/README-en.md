@@ -175,18 +175,6 @@ This project is open-sourced under the [MIT License](LICENSE).
 
 ---
 
-## ❤️ Support & Sponsorship
-
-If you find this project helpful and wish to support its continued maintenance and development, please consider buying me a coffee! Your support is my greatest motivation.
-
-<p align="center">
-  <img src="/docs/imgs/alipay.jpg" width="150" alt="Alipay Sponsorship">
-  <img src="/docs/imgs/wechat.jpg" width="150" alt="WeChat Sponsorship">
-</p>
-<p align="center">
-  <i>(Left) Alipay / (Right) WeChat</i>
-</p>
-
 ## 🙏 Acknowledgements
 
 A special thanks to **JetBrains** for providing a free open-source license for this project.

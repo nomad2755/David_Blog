@@ -175,18 +175,6 @@ npm run dev
 
 ---
 
-## ❤️ 支持与赞助
-
-如果您觉得这个项目对您有帮助，并且希望支持我继续维护和开发新功能，欢迎请我喝杯咖啡！您的每一份支持都是我前进的最大动力。
-
-<p align="center">
-  <img src="/docs/imgs/alipay.jpg" width="150" alt="支付宝赞助">
-  <img src="/docs/imgs/wechat.jpg" width="150" alt="微信赞助">
-</p>
-<p align="center">
-  <i>(左) 支付宝 / (右) 微信</i>
-</p>
-
 ## 🙏 鸣谢
 
 特别感谢 **JetBrains** 为本项目提供的免费开源许可证。
