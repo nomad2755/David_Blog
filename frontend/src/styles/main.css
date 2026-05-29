@@ -36,17 +36,17 @@
 
 /* ==================== 主题配色方案 CSS 变量 ==================== */
 :root {
-  /* 默认主题：紫色 Purple Dream */
-  --color-primary-50: 240 249 255;
-  --color-primary-100: 224 242 254;
-  --color-primary-200: 186 230 253;
-  --color-primary-300: 125 211 252;
-  --color-primary-400: 102 126 234;
-  --color-primary-500: 102 126 234;
-  --color-primary-600: 118 75 162;
-  --color-primary-700: 91 33 182;
-  --color-primary-800: 76 29 149;
-  --color-primary-900: 59 7 100;
+  /* 火山引擎风格 - 科技感蓝紫色 */
+  --color-primary-50: 238 242 255;
+  --color-primary-100: 224 231 255;
+  --color-primary-200: 199 210 254;
+  --color-primary-300: 165 180 252;
+  --color-primary-400: 129 140 248;
+  --color-primary-500: 99 102 241;    /* 靛蓝色 */
+  --color-primary-600: 79 70 229;
+  --color-primary-700: 67 56 202;
+  --color-primary-800: 55 48 163;
+  --color-primary-900: 49 46 129;
 }
 
 /* 紫色主题 - Purple Dream */
@@ -169,79 +169,87 @@ body[data-color-scheme="teal"] {
   --color-primary-900: 19 78 74;
 }
 
+/* Apple Dark - Black+Green */
+:root[data-color-scheme="apple-dark"],
+body[data-color-scheme="apple-dark"] {
+  --color-primary-50: 240 253 244;
+  --color-primary-100: 220 252 231;
+  --color-primary-200: 187 247 208;
+  --color-primary-300: 134 239 172;
+  --color-primary-400: 74 222 128;
+  --color-primary-500: 48 209 88;
+  --color-primary-600: 52 199 89;
+  --color-primary-700: 34 150 65;
+  --color-primary-800: 22 101 52;
+  --color-primary-900: 20 83 45;
+}
+
+/* Apple Dark semantic tokens - Light mode fallback */
+[data-color-scheme="apple-dark"]:not(.dark):not([data-theme="dark"]) {
+  --background: 242 242 247;
+  --foreground: 28 28 30;
+  --card: 255 255 255;
+  --card-foreground: 28 28 30;
+  --border: 209 209 214;
+  --input: 209 209 214;
+  --muted: 242 242 247;
+  --muted-foreground: 142 142 147;
+  --secondary: 242 242 247;
+  --secondary-foreground: 28 28 30;
+  --popover: 255 255 255;
+  --popover-foreground: 28 28 30;
+}
+
 /* ==================== 语义化 CSS 变量系统 (对标 Next.js) ==================== */
 :root {
-  /* 基础色 - 亮色模式 - 使用OKLCH色彩空间获得更好的感知均匀性 */
-  --background: 249 250 251;           /* rgb(249 250 251) - 柔和的灰白背景 */
-  --foreground: 17 24 39;              /* rgb(17 24 39) - 深灰色文本 */
+  /* 基础色 - 明亮模式 - 火山引擎风格 */
+  --background: 255 255 255;              /* rgb(255 255 255) - 纯白背景 */
+  --foreground: 15 23 42;                /* rgb(15 23 42) - 深蓝黑文字 */
 
   /* 卡片 */
-  --card: 255 255 255;                 /* rgb(255 255 255) - 纯白卡片 */
-  --card-foreground: 17 24 39;         /* rgb(17 24 39) - 卡片文本色 */
+  --card: 255 255 255;                   /* rgb(255 255 255) - 纯白卡片 */
+  --card-foreground: 15 23 42;           /* rgb(15 23 42) - 卡片文字 */
 
   /* Popover浮层 */
-  --popover: 255 255 255;              /* rgb(255 255 255) */
-  --popover-foreground: 17 24 39;      /* rgb(17 24 39) */
+  --popover: 255 255 255;                /* rgb(255 255 255) */
+  --popover-foreground: 15 23 42;        /* rgb(15 23 42) */
 
   /* 边框和输入 */
-  --border: 229 231 235;               /* rgb(229 231 235) - 边框色 */
-  --input: 229 231 235;                /* rgb(229 231 235) - 输入框边框 */
-  --ring: var(--color-primary-500);   /* 使用主题色作为聚焦环 */
+  --border: 226 232 240;                 /* rgb(226 232 240) - 浅灰边框 */
+  --input: 226 232 240;                  /* rgb(226 232 240) - 输入框边框 */
+  --ring: var(--color-primary-500);      /* 使用靛蓝作为聚焦环 */
 
   /* 静音色 */
-  --muted: 243 244 246;                /* rgb(243 244 246) - 静音背景 */
-  --muted-foreground: 107 114 128;     /* rgb(107 114 128) - 静音文本 */
+  --muted: 241 245 249;                  /* rgb(241 245 249) - 浅灰背景 */
+  --muted-foreground: 100 116 139;       /* rgb(100 116 139) - 灰色文字 */
 
-  /* 主色 - 使用现有的 primary 变量 */
+  /* 主色 - 靛蓝紫 */
   --primary: var(--color-primary-500);
-  --primary-foreground: 255 255 255;   /* rgb(255 255 255) - 主色上的白色文本 */
+  --primary-foreground: 255 255 255;     /* rgb(255 255 255) - 白色文字 */
 
   /* 次要色 */
-  --secondary: 243 244 246;            /* rgb(243 244 246) - 次要背景 */
-  --secondary-foreground: 31 41 55;    /* rgb(31 41 55) - 次要文本 */
+  --secondary: 241 245 249;              /* rgb(241 245 249) - 浅灰 */
+  --secondary-foreground: 15 23 42;      /* rgb(15 23 42) - 深色文字 */
 
   /* 强调色 */
-  --accent: var(--color-primary-400);
-  --accent-foreground: 255 255 255;    /* rgb(255 255 255) - 强调色上的白色文本 */
+  --accent: var(--color-primary-500);
+  --accent-foreground: 255 255 255;      /* rgb(255 255 255) - 白色文字 */
 
   /* 破坏性操作 */
-  --destructive: 239 68 68;            /* rgb(239 68 68) - 红色 */
+  --destructive: 239 68 68;              /* rgb(239 68 68) - 红色 */
   --destructive-foreground: 255 255 255;
 
   /* 圆角系统 */
-  --radius: 0.5rem;                    /* 8px - 基准圆角 */
+  --radius: 0.75rem;                     /* 12px - 更大的圆角 */
 
-  /* 阴影系统 - 使用更柔和的阴影 */
-  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-card-hover: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-elevated: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-}
+  /* 阴影系统 - 轻微阴影 */
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+  --shadow-card-hover: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.08);
+  --shadow-elevated: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08);
 
-/* 深色模式变量 */
-.dark,
-[data-theme="dark"] {
-  --background: 15 23 42;              /* rgb(15 23 42) - Slate-900 深灰背景 */
-  --foreground: 226 232 240;           /* rgb(226 232 240) - Slate-200 亮灰文本 */
-
-  --card: 30 41 59;                    /* rgb(30 41 59) - Slate-800 深色卡片 */
-  --card-foreground: 226 232 240;      /* rgb(226 232 240) - 卡片文本 */
-
-  --popover: 30 41 59;                 /* rgb(30 41 59) */
-  --popover-foreground: 226 232 240;   /* rgb(226 232 240) */
-
-  --border: 51 65 85;                  /* rgb(51 65 85) - Slate-700 深色边框 */
-  --input: 51 65 85;                   /* rgb(51 65 85) - 输入框边框 */
-
-  --muted: 51 65 85;                   /* rgb(51 65 85) - 静音背景 */
-  --muted-foreground: 148 163 184;     /* rgb(148 163 184) - Slate-400 静音文本 */
-
-  --secondary: 51 65 85;               /* rgb(51 65 85) - 次要背景 */
-  --secondary-foreground: 226 232 240; /* rgb(226 232 240) - 次要文本 */
-
-  /* 深色模式阴影 - 使用更深更自然的阴影 */
-  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
-  --shadow-card-hover: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
-  --shadow-elevated: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.5);
+  /* 渐变色 - 火山引擎风格 */
+  --gradient-start: 99 102 241;          /* 靛蓝 */
+  --gradient-end: 168 85 247;            /* 紫色 */
 }
 
 /* ==================== 基础样式层 ==================== */
@@ -420,6 +428,16 @@ body[data-color-scheme="teal"] {
     border-color: #30363d;
   }
 
+  /* Apple Dark - 代码块 */
+  [data-color-scheme="apple-dark"] pre {
+    background-color: #1C1C1E !important;
+    color: #E5E5EA !important;
+    border-color: #38383A;
+  }
+  [data-color-scheme="apple-dark"] pre code {
+    color: #E5E5EA;
+  }
+
   /* 代码块中的code标签 */
   pre code {
     @apply p-0 bg-transparent;
@@ -530,6 +548,17 @@ body[data-color-scheme="teal"] {
     border-color: rgb(var(--primary) / 0.2);
     box-shadow: var(--shadow-card-hover);
     transform: translateY(-2px);
+  }
+
+  /* Apple Dark: no lift, green glow on hover */
+  [data-color-scheme="apple-dark"] .card {
+    @apply rounded-2xl;
+    border-color: rgb(var(--border) / 0.5);
+  }
+  [data-color-scheme="apple-dark"] .card:hover {
+    transform: none;
+    border-color: rgb(var(--primary) / 0.4);
+    box-shadow: 0 0 0 1px rgb(var(--primary) / 0.15), 0 0 20px rgb(var(--primary) / 0.08);
   }
 
   /* ========== 使用语义化变量的工具类 ========== */
@@ -2817,6 +2846,13 @@ img[loading="lazy"][src] {
   animation: rocketMove 0.8s ease-out;
 }
 
+/* Apple Dark: frosted glass back-to-top */
+[data-color-scheme="apple-dark"] #rocket {
+  @apply bg-primary-500/80 hover:bg-primary-500;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
 @keyframes rocketMove {
   0% {
     transform: translateY(0);
@@ -3156,11 +3192,43 @@ article a[href*="/tag/"]:hover {
   section.relative.overflow-hidden {
     @apply py-8;
   }
-  
+
   /* 移动端标题大小调整 */
   h1.text-3xl {
     @apply text-2xl;
   }
+}
+
+/* ==================== Apple Dark 专用样式 ==================== */
+@keyframes greenPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(48, 209, 88, 0);
+  }
+}
+
+.green-pulse-dot {
+  animation: greenPulse 2s ease-in-out infinite;
+}
+
+/* Apple hero dot-grid pattern */
+.apple-hero-grid {
+  background-image: radial-gradient(circle, rgba(48, 209, 88, 0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Glass morphism button */
+.glass-btn {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.glass-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 /* 深色模式优化 */

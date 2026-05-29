@@ -9,6 +9,7 @@ from blog.models import Article
 from djangoblog.base_views import AuthenticatedFormView
 from .forms import CommentForm
 from .models import Comment, CommentReaction
+from .utils import parse_mentions, get_unread_notifications_count, mark_notifications_as_read
 
 
 class CommentPostView(AuthenticatedFormView):
@@ -60,6 +61,12 @@ class CommentPostView(AuthenticatedFormView):
             comment.parent_comment = parent_comment
 
         comment.save(True)
+
+        # 处理@提及
+        mentioned_users = parse_mentions(comment.body)
+        if mentioned_users:
+            comment.mentioned_users.set(mentioned_users)
+
         return HttpResponseRedirect(
             "%s#div-comment-%d" %
             (article.get_absolute_url(), comment.pk))
@@ -126,4 +133,62 @@ class CommentReactionView(View):
             'success': True,
             'action': action,
             'reactions': reactions_data
+        })
+
+
+class CommentNotificationListView(View):
+    """评论通知列表API"""
+
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return JsonResponse({
+                'success': False,
+                'error': 'Authentication required'
+            }, status=401)
+
+        from .models import CommentNotification
+
+        notifications = CommentNotification.objects.filter(
+            recipient=request.user
+        ).select_related('comment', 'comment__author', 'comment__article')[:20]
+
+        notifications_data = []
+        for notification in notifications:
+            notifications_data.append({
+                'id': notification.id,
+                'type': notification.notification_type,
+                'is_read': notification.is_read,
+                'created_at': notification.created_at.isoformat(),
+                'comment': {
+                    'id': notification.comment.id,
+                    'body': notification.comment.body[:100],
+                    'author': notification.comment.author.username,
+                    'article_title': notification.comment.article.title,
+                    'article_url': notification.comment.article.get_absolute_url(),
+                }
+            })
+
+        return JsonResponse({
+            'success': True,
+            'notifications': notifications_data,
+            'unread_count': get_unread_notifications_count(request.user)
+        })
+
+
+class CommentNotificationMarkReadView(View):
+    """标记通知为已读API"""
+
+    def post(self, request):
+        if not request.user.is_authenticated:
+            return JsonResponse({
+                'success': False,
+                'error': 'Authentication required'
+            }, status=401)
+
+        notification_ids = request.POST.getlist('notification_ids')
+        mark_notifications_as_read(request.user, notification_ids if notification_ids else None)
+
+        return JsonResponse({
+            'success': True,
+            'unread_count': get_unread_notifications_count(request.user)
         })

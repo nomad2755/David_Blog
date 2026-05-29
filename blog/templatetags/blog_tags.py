@@ -254,11 +254,20 @@ def load_sidebar(user, linktype):
     加载侧边栏
     :return:
     """
-    value = cache.get("sidebar" + linktype)
+    # 调试信息
+    logger.info(f"load_sidebar called: user={user}, is_authenticated={user.is_authenticated if user else 'None'}")
+
+    # 根据用户登录状态使用不同的缓存key
+    auth_suffix = '_auth' if user.is_authenticated else '_anon'
+    cache_key = "sidebar" + linktype + auth_suffix
+
+    value = cache.get(cache_key)
     if value:
+        logger.info(f"Cache HIT: {cache_key}")
         value['user'] = user
         return value
     else:
+        logger.info(f"Cache MISS: {cache_key}")
         logger.info('load sidebar')
         from djangoblog.utils import get_blog_setting
         blogsetting = get_blog_setting()
@@ -317,8 +326,8 @@ def load_sidebar(user, linktype):
             'sidebar_tags': sidebar_tags,
             'extra_sidebars': extra_sidebars
         }
-        cache.set("sidebar" + linktype, value, 60 * 60 * 60 * 3)
-        logger.info('set sidebar cache.key:{key}'.format(key="sidebar" + linktype))
+        cache.set(cache_key, value, 60 * 60 * 60 * 3)
+        logger.info('set sidebar cache.key:{key}'.format(key=cache_key))
         value['user'] = user
         return value
 

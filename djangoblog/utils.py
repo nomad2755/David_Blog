@@ -205,10 +205,12 @@ def save_user_avatar(url):
 
 def delete_sidebar_cache():
     from blog.models import LinkShowType
-    keys = ["sidebar" + x for x in LinkShowType.values]
-    for k in keys:
-        logger.info('delete sidebar key:' + k)
-        cache.delete(k)
+    # 删除所有sidebar相关的缓存（包括登录和未登录状态）
+    for linktype in LinkShowType.values:
+        for suffix in ['', '_auth', '_anon']:
+            key = "sidebar" + linktype + suffix
+            logger.info('delete sidebar key:' + key)
+            cache.delete(key)
 
 
 def delete_view_cache(prefix, keys):

@@ -105,6 +105,40 @@ class Article(BaseModel):
         blank=False,
         null=False)
     tags = models.ManyToManyField('Tag', verbose_name=_('tag'), blank=True)
+    # SEO字段
+    seo_title = models.CharField(
+        _('SEO title'),
+        max_length=200,
+        blank=True,
+        help_text=_('搜索引擎优化标题，留空则使用文章标题')
+    )
+    seo_description = models.TextField(
+        _('SEO description'),
+        max_length=500,
+        blank=True,
+        help_text=_('搜索引擎优化描述，留空则自动截取文章内容')
+    )
+    seo_keywords = models.CharField(
+        _('SEO keywords'),
+        max_length=200,
+        blank=True,
+        help_text=_('搜索引擎优化关键词，用逗号分隔')
+    )
+    # 文章摘要
+    excerpt = models.TextField(
+        _('excerpt'),
+        max_length=500,
+        blank=True,
+        help_text=_('文章摘要，留空则自动截取文章内容')
+    )
+    # 特色图片
+    featured_image = models.ImageField(
+        _('featured image'),
+        upload_to='articles/%Y/%m/',
+        blank=True,
+        null=True,
+        help_text=_('文章特色图片')
+    )
 
     def body_to_string(self):
         return self.body
@@ -186,6 +220,43 @@ class Article(BaseModel):
         if match:
             return match.group(1)
         return ""
+
+    def get_seo_title(self):
+        """获取SEO标题"""
+        return self.seo_title or self.title
+
+    def get_seo_description(self):
+        """获取SEO描述"""
+        if self.seo_description:
+            return self.seo_description
+        if self.excerpt:
+            return self.excerpt
+        # 自动截取文章内容作为描述
+        clean_body = re.sub(r'<[^>]+>', '', self.body)
+        return clean_body[:160] + '...' if len(clean_body) > 160 else clean_body
+
+    def get_seo_keywords(self):
+        """获取SEO关键词"""
+        if self.seo_keywords:
+            return self.seo_keywords
+        # 使用标签作为关键词
+        tag_names = [tag.name for tag in self.tags.all()]
+        return ', '.join(tag_names) if tag_names else ''
+
+    def get_excerpt(self):
+        """获取文章摘要"""
+        if self.excerpt:
+            return self.excerpt
+        # 自动截取文章内容
+        clean_body = re.sub(r'<[^>]+>', '', self.body)
+        return clean_body[:200] + '...' if len(clean_body) > 200 else clean_body
+
+    def get_featured_image_url(self):
+        """获取特色图片URL"""
+        if self.featured_image:
+            return self.featured_image.url
+        # 尝试从文章内容中提取第一张图片
+        return self.get_first_image_url()
 
 
 class Category(BaseModel):
@@ -319,6 +390,7 @@ class BlogSettings(models.Model):
     """blog的配置"""
 
     COLOR_SCHEMES = (
+        ('apple-dark', _('Apple Dark - Black+Green')),
         ('purple', _('紫色主题 - Purple Dream')),
         ('blue', _('蓝色主题 - Ocean Blue')),
         ('green', _('绿色主题 - Forest Green')),
@@ -361,7 +433,7 @@ class BlogSettings(models.Model):
         _('配色方案'),
         max_length=20,
         choices=COLOR_SCHEMES,
-        default='purple',
+        default='apple-dark',
         help_text=_('选择网站的主题配色方案'))
     global_header = models.TextField("公共头部", null=True, blank=True, default='')
     global_footer = models.TextField("公共尾部", null=True, blank=True, default='')
@@ -387,6 +459,29 @@ class BlogSettings(models.Model):
         default='')
     comment_need_review = models.BooleanField(
         '评论是否需要审核', default=False, null=False)
+
+    # Portfolio fields
+    portfolio_hero_title = models.CharField(
+        _('Hero Title'), max_length=200, blank=True, default='',
+        help_text=_('Homepage hero title, e.g. your name'))
+    portfolio_hero_subtitle = models.TextField(
+        _('Hero Subtitle'), max_length=500, blank=True, default='',
+        help_text=_('Short tagline below the title'))
+    portfolio_skills = models.TextField(
+        _('Skills (JSON)'), blank=True, default='',
+        help_text=_('JSON array: [{"name":"Python","icon":"...","desc":"..."},...]'))
+    portfolio_experience = models.TextField(
+        _('Experience (Markdown)'), blank=True, default='',
+        help_text=_('Work experience in Markdown'))
+    portfolio_education = models.TextField(
+        _('Education (Markdown)'), blank=True, default='',
+        help_text=_('Education in Markdown'))
+    portfolio_contact_email = models.EmailField(
+        _('Contact Email'), blank=True, default='')
+    portfolio_github = models.URLField(
+        _('GitHub URL'), blank=True, default='')
+    portfolio_linkedin = models.URLField(
+        _('LinkedIn URL'), blank=True, default='')
 
     class Meta:
         verbose_name = _('Website configuration')

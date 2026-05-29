@@ -12,4 +12,12 @@ urlpatterns = [
         'comment/<int:comment_id>/react',
         views.CommentReactionView.as_view(),
         name='comment_react'),
+    path(
+        'notifications/',
+        views.CommentNotificationListView.as_view(),
+        name='notifications'),
+    path(
+        'notifications/mark-read/',
+        views.CommentNotificationMarkReadView.as_view(),
+        name='notifications_mark_read'),
 ]

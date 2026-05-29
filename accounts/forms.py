@@ -115,3 +115,77 @@ class ForgetPasswordCodeForm(forms.Form):
     email = forms.EmailField(
         label=_('Email'),
     )
+
+
+class UserProfileForm(forms.ModelForm):
+    """用户个人资料编辑表单"""
+    class Meta:
+        model = BlogUser
+        fields = [
+            'nickname', 'email', 'avatar', 'bio', 'website',
+            'location', 'github', 'twitter'
+        ]
+        widgets = {
+            'nickname': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('请输入昵称')
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('请输入邮箱')
+            }),
+            'bio': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': _('介绍一下自己...')
+            }),
+            'website': forms.URLInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('https://example.com')
+            }),
+            'location': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('所在地')
+            }),
+            'github': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('GitHub用户名')
+            }),
+            'twitter': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('Twitter用户名')
+            }),
+        }
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email:
+            # 检查邮箱是否已被其他用户使用
+            existing = BlogUser.objects.filter(email=email).exclude(pk=self.instance.pk)
+            if existing.exists():
+                raise ValidationError(_("该邮箱已被使用"))
+        return email
+
+
+class UserAvatarForm(forms.ModelForm):
+    """用户头像上传表单"""
+    class Meta:
+        model = BlogUser
+        fields = ['avatar']
+        widgets = {
+            'avatar': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*'
+            })
+        }
+
+    def clean_avatar(self):
+        avatar = self.cleaned_data.get('avatar')
+        if avatar:
+            # 检查文件大小（限制2MB）
+            if avatar.size > 2 * 1024 * 1024:
+                raise ValidationError(_("头像文件大小不能超过2MB"))
+            # 检查文件类型
+            if not avatar.content_type.startswith('image/'):
+                raise ValidationError(_("请上传图片文件"))
+        return avatar

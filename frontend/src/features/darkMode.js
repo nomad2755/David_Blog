@@ -24,8 +24,8 @@ function getPreferredTheme() {
         }
     }
 
-    // 3. 默认主题
-    return 'light';
+    // 3. 默认暗色模式
+    return 'dark';
 }
 
 /**

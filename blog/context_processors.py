@@ -48,6 +48,14 @@ def seo_processor(requests):
             "GLOBAL_FOOTER": setting.global_footer,
             "COMMENT_NEED_REVIEW": setting.comment_need_review,
             "COLOR_SCHEME": setting.color_scheme,
+            "PORTFOLIO_HERO_TITLE": setting.portfolio_hero_title,
+            "PORTFOLIO_HERO_SUBTITLE": setting.portfolio_hero_subtitle,
+            "PORTFOLIO_SKILLS": setting.portfolio_skills,
+            "PORTFOLIO_EXPERIENCE": setting.portfolio_experience,
+            "PORTFOLIO_EDUCATION": setting.portfolio_education,
+            "PORTFOLIO_CONTACT_EMAIL": setting.portfolio_contact_email,
+            "PORTFOLIO_GITHUB": setting.portfolio_github,
+            "PORTFOLIO_LINKEDIN": setting.portfolio_linkedin,
         }
         cache.set(key, value, 60 * 60 * 10)
         return value

@@ -28,6 +28,13 @@ class Comment(models.Model):
         on_delete=models.CASCADE)
     is_enable = models.BooleanField(_('enable'),
                                     default=False, blank=False, null=False)
+    # @提及的用户
+    mentioned_users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_('mentioned users'),
+        blank=True,
+        related_name='mentioned_in_comments'
+    )
 
     class Meta:
         ordering = ['-id']
@@ -90,6 +97,43 @@ class Comment(models.Model):
 
         return result
 
+    def save(self, *args, **kwargs):
+        """保存评论时处理@提及"""
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+
+        if is_new and self.is_enable:
+            self._send_notifications()
+
+    def _send_notifications(self):
+        """发送评论通知"""
+        from .utils import send_comment_notification
+
+        # 通知文章作者
+        if self.author != self.article.author:
+            send_comment_notification(
+                recipient=self.article.author,
+                comment=self,
+                notification_type='article_comment'
+            )
+
+        # 通知父评论作者
+        if self.parent_comment and self.parent_comment.author != self.author:
+            send_comment_notification(
+                recipient=self.parent_comment.author,
+                comment=self,
+                notification_type='reply'
+            )
+
+        # 通知@提及的用户
+        for user in self.mentioned_users.all():
+            if user != self.author:
+                send_comment_notification(
+                    recipient=user,
+                    comment=self,
+                    notification_type='mention'
+                )
+
 
 class CommentReaction(models.Model):
     """
@@ -135,3 +179,48 @@ class CommentReaction(models.Model):
 
     def __str__(self):
         return f'{self.user.username} - {self.reaction_type} on comment {self.comment.id}'
+
+
+class CommentNotification(models.Model):
+    """评论通知"""
+    NOTIFICATION_TYPES = [
+        ('article_comment', _('文章评论')),
+        ('reply', _('评论回复')),
+        ('mention', _('评论提及')),
+    ]
+
+    recipient = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_('recipient'),
+        on_delete=models.CASCADE,
+        related_name='comment_notifications'
+    )
+    comment = models.ForeignKey(
+        Comment,
+        verbose_name=_('comment'),
+        on_delete=models.CASCADE,
+        related_name='notifications'
+    )
+    notification_type = models.CharField(
+        _('notification type'),
+        max_length=20,
+        choices=NOTIFICATION_TYPES
+    )
+    is_read = models.BooleanField(_('is read'), default=False)
+    created_at = models.DateTimeField(_('created at'), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('comment notification')
+        verbose_name_plural = _('comment notifications')
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['recipient', 'is_read'], name='idx_recipient_read'),
+        ]
+
+    def __str__(self):
+        return f'Notification for {self.recipient.username}: {self.notification_type}'
+
+    def mark_as_read(self):
+        """标记为已读"""
+        self.is_read = True
+        self.save(update_fields=['is_read'])

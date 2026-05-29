@@ -87,3 +87,16 @@ static/avatar
 img/
 .specify/
 specs/
+
+# AI / Editor generated files
+AI_OPERATIONS_LOG.md
+*.backup
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+*.swp
+*.swo

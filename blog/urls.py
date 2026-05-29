@@ -43,9 +43,7 @@ urlpatterns = [
         name='tag_detail_page'),
     path(
         'archives.html',
-        cache_page(
-            60 * 60)(
-            views.ArchivesView.as_view()),
+        views.ArchivesView.as_view(),
         name='archives'),
     path(
         'links.html',
@@ -63,4 +61,12 @@ urlpatterns = [
         'about.html',
         views.AboutView.as_view(),
         name='about'),
+    path(
+        'article/create/',
+        views.ArticleCreateView.as_view(),
+        name='article_create'),
+    path(
+        'article/<slug>/edit/',
+        views.ArticleUpdateView.as_view(),
+        name='article_edit'),
 ]

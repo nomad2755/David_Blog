@@ -65,13 +65,13 @@ export default {
 
       // 字体家族
       fontFamily: {
-        sans: ['Open Sans', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
-        mono: ['Consolas', 'Monaco', 'Courier New', 'monospace'],
+        sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'SF Pro Text', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        mono: ['SF Mono', 'Fira Code', 'Consolas', 'Monaco', 'Courier New', 'monospace'],
       },
 
-      // 容器最大宽度，与现有布局一致
+      // 容器最大宽度
       maxWidth: {
-        'site': '1040px',
+        'site': '1200px',
       },
 
       // 动画
@@ -80,6 +80,7 @@ export default {
         'slide-up': 'slideUp 0.3s ease-out',
         'slide-down': 'slideDown 0.3s ease-out',
         'heartbeat': 'heartbeat 1.2s ease-in-out infinite',
+        'glow-pulse': 'glowPulse 2s ease-in-out infinite',
       },
 
       keyframes: {
@@ -101,6 +102,10 @@ export default {
           '28%': { transform: 'scale(1)' },
           '42%': { transform: 'scale(1.3)' },
           '70%': { transform: 'scale(1)' },
+        },
+        glowPulse: {
+          '0%, 100%': { boxShadow: '0 0 0 0 rgba(48, 209, 88, 0.5)' },
+          '50%': { boxShadow: '0 0 0 8px rgba(48, 209, 88, 0)' },
         },
       },
     },

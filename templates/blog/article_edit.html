@@ -1,0 +1,308 @@
+{% extends 'share_layout/base.html' %}
+{% load i18n %}
+
+{% block header %}
+    <title>{{ page_title }} | {{ SITE_NAME }}</title>
+    <meta name="description" content="{{ page_title }} - {{ SITE_NAME }}"/>
+{% endblock %}
+
+{% block content %}
+    <div class="mx-auto max-w-4xl px-4 py-4 lg:px-6 lg:py-6">
+        <div class="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+            <div class="p-6 md:p-8">
+                <h1 class="mb-6 text-2xl font-bold text-foreground">{{ page_title }}</h1>
+
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+
+                    {# 标题 #}
+                    <div>
+                        <label for="id_title" class="mb-2 block text-sm font-medium text-foreground">
+                            {% trans "文章标题" %} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <p class="mt-1 text-sm text-red-500">{{ form.title.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    {# 分类 #}
+                    <div>
+                        <label for="id_category" class="mb-2 block text-sm font-medium text-foreground">
+                            {% trans "文章分类" %} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                            <p class="mt-1 text-sm text-red-500">{{ form.category.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    {# 标签 #}
+                    <div>
+                        <label class="mb-2 block text-sm font-medium text-foreground">
+                            {% trans "文章标签" %}
+                        </label>
+                        <div class="flex flex-wrap gap-2">
+                            {% for tag in form.tags %}
+                                <label class="inline-flex items-center rounded-full bg-muted px-3 py-1 text-sm cursor-pointer hover:bg-primary/10 transition-colors">
+                                    {{ tag }}
+                                </label>
+                            {% endfor %}
+                        </div>
+                        {% if form.tags.errors %}
+                            <p class="mt-1 text-sm text-red-500">{{ form.tags.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    {# 文章内容 #}
+                    <div>
+                        <label for="id_body" class="mb-2 block text-sm font-medium text-foreground">
+                            {% trans "文章内容" %} <span class="text-red-500">*</span>
+                        </label>
+                        <div id="editor-container" class="rounded-lg border border-border">
+                            <div id="editor-toolbar" class="flex items-center gap-2 border-b border-border bg-muted p-2">
+                                <button type="button" onclick="insertMarkdown('**', '**')" class="rounded p-1.5 hover:bg-background" title="{% trans '加粗' %}">
+                                    <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 12h8a4 4 0 100-8H6v8zm0 0h10a4 4 0 110 8H6v-8z"/></svg>
+                                </button>
+                                <button type="button" onclick="insertMarkdown('*', '*')" class="rounded p-1.5 hover:bg-background" title="{% trans '斜体' %}">
+                                    <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                                </button>
+                                <button type="button" onclick="insertMarkdown('[', '](url)')" class="rounded p-1.5 hover:bg-background" title="{% trans '链接' %}">
+                                    <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                                </button>
+                                <button type="button" onclick="insertMarkdown('![alt](', ')')" class="rounded p-1.5 hover:bg-background" title="{% trans '图片' %}">
+                                    <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                </button>
+                                <button type="button" onclick="insertMarkdown('\n```\n', '\n```\n')" class="rounded p-1.5 hover:bg-background" title="{% trans '代码块' %}">
+                                    <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                                </button>
+                                <button type="button" onclick="insertMarkdown('\n> ', '')" class="rounded p-1.5 hover:bg-background" title="{% trans '引用' %}">
+                                    <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                                </button>
+                                <button type="button" onclick="insertMarkdown('\n- ', '')" class="rounded p-1.5 hover:bg-background" title="{% trans '列表' %}">
+                                    <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                                </button>
+                                <div class="mx-2 h-4 w-px bg-border"></div>
+                                <button type="button" onclick="togglePreview()" class="rounded p-1.5 hover:bg-background" title="{% trans '预览' %}">
+                                    <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                </button>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2">
+                                <div id="editor-write" class="border-r border-border">
+                                    {{ form.body }}
+                                </div>
+                                <div id="editor-preview" class="hidden overflow-auto p-4 prose prose-sm max-w-none" style="max-height: 500px;"></div>
+                            </div>
+                        </div>
+                        {% if form.body.errors %}
+                            <p class="mt-1 text-sm text-red-500">{{ form.body.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    {# 文章设置 #}
+                    <div class="grid grid-cols-1 gap-4 rounded-lg border border-border p-4 sm:grid-cols-3">
+                        <div>
+                            <label for="id_status" class="mb-2 block text-sm font-medium text-foreground">
+                                {% trans "文章状态" %}
+                            </label>
+                            {{ form.status }}
+                        </div>
+                        <div>
+                            <label for="id_comment_status" class="mb-2 block text-sm font-medium text-foreground">
+                                {% trans "评论状态" %}
+                            </label>
+                            {{ form.comment_status }}
+                        </div>
+                        <div>
+                            <label for="id_type" class="mb-2 block text-sm font-medium text-foreground">
+                                {% trans "文章类型" %}
+                            </label>
+                            {{ form.type }}
+                        </div>
+                    </div>
+
+                    {# 目录显示 #}
+                    <div class="flex items-center gap-2">
+                        {{ form.show_toc }}
+                        <label for="id_show_toc" class="text-sm font-medium text-foreground">
+                            {% trans "显示文章目录" %}
+                        </label>
+                    </div>
+
+                    {# 文章摘要 #}
+                    <div>
+                        <label for="id_excerpt" class="mb-2 block text-sm font-medium text-foreground">
+                            {% trans "文章摘要" %}
+                        </label>
+                        {{ form.excerpt }}
+                        <p class="mt-1 text-xs text-muted-foreground">{% trans "留空则自动截取文章内容" %}</p>
+                        {% if form.excerpt.errors %}
+                            <p class="mt-1 text-sm text-red-500">{{ form.excerpt.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    {# 特色图片 #}
+                    <div>
+                        <label for="id_featured_image" class="mb-2 block text-sm font-medium text-foreground">
+                            {% trans "特色图片" %}
+                        </label>
+                        {{ form.featured_image }}
+                        <p class="mt-1 text-xs text-muted-foreground">{% trans "用于文章列表和社交分享" %}</p>
+                        {% if form.featured_image.errors %}
+                            <p class="mt-1 text-sm text-red-500">{{ form.featured_image.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    {# SEO设置 #}
+                    <div class="rounded-lg border border-border p-4">
+                        <h3 class="mb-4 font-medium text-foreground">{% trans "SEO 设置" %}</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="id_seo_title" class="mb-2 block text-sm font-medium text-foreground">
+                                    {% trans "SEO 标题" %}
+                                </label>
+                                {{ form.seo_title }}
+                                <p class="mt-1 text-xs text-muted-foreground">{% trans "留空则使用文章标题" %}</p>
+                                {% if form.seo_title.errors %}
+                                    <p class="mt-1 text-sm text-red-500">{{ form.seo_title.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="id_seo_description" class="mb-2 block text-sm font-medium text-foreground">
+                                    {% trans "SEO 描述" %}
+                                </label>
+                                {{ form.seo_description }}
+                                <p class="mt-1 text-xs text-muted-foreground">{% trans "留空则自动截取，建议160字符以内" %}</p>
+                                {% if form.seo_description.errors %}
+                                    <p class="mt-1 text-sm text-red-500">{{ form.seo_description.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="id_seo_keywords" class="mb-2 block text-sm font-medium text-foreground">
+                                    {% trans "SEO 关键词" %}
+                                </label>
+                                {{ form.seo_keywords }}
+                                <p class="mt-1 text-xs text-muted-foreground">{% trans "用逗号分隔，留空则使用标签" %}</p>
+                                {% if form.seo_keywords.errors %}
+                                    <p class="mt-1 text-sm text-red-500">{{ form.seo_keywords.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {# 提交按钮 #}
+                    <div class="flex items-center justify-end gap-3 border-t border-border pt-6">
+                        <a href="{% url 'blog:index' %}" class="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors">
+                            {% trans "取消" %}
+                        </a>
+                        <button type="submit" class="rounded-lg bg-primary px-6 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
+                            {{ submit_text }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Markdown编辑器功能
+        function insertMarkdown(prefix, suffix) {
+            const textarea = document.getElementById('id_body');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const selectedText = textarea.value.substring(start, end);
+            const replacement = prefix + (selectedText || '{% trans "文本" %}') + suffix;
+
+            textarea.value = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
+            textarea.focus();
+            textarea.setSelectionRange(start + prefix.length, start + prefix.length + (selectedText.length || {% trans "文本" %}.length));
+        }
+
+        // 预览功能
+        let previewVisible = false;
+        function togglePreview() {
+            const preview = document.getElementById('editor-preview');
+            const textarea = document.getElementById('id_body');
+
+            previewVisible = !previewVisible;
+
+            if (previewVisible) {
+                preview.classList.remove('hidden');
+                preview.innerHTML = markdownToHtml(textarea.value);
+            } else {
+                preview.classList.add('hidden');
+            }
+        }
+
+        // 简单的Markdown转HTML（实际项目中应使用专业库如marked.js）
+        function markdownToHtml(md) {
+            if (!md) return '';
+            let html = md
+                // 转义HTML特殊字符
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                // 标题
+                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                // 粗体和斜体
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                // 链接和图片
+                .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="max-w-full h-auto">')
+                .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="text-primary hover:underline">$1</a>')
+                // 代码块
+                .replace(/```([\s\S]*?)```/g, '<pre class="bg-muted p-4 rounded-lg overflow-x-auto"><code>$1</code></pre>')
+                // 行内代码
+                .replace(/`(.*?)`/g, '<code class="bg-muted px-1.5 py-0.5 rounded text-sm">$1</code>')
+                // 引用
+                .replace(/^> (.*$)/gim, '<blockquote class="border-l-4 border-primary pl-4 italic text-muted-foreground">$1</blockquote>')
+                // 列表
+                .replace(/^- (.*$)/gim, '<li class="ml-4">$1</li>')
+                // 换行
+                .replace(/\n/g, '<br>');
+
+            return html;
+        }
+
+        // 自动保存功能（每30秒）
+        let autoSaveTimer = null;
+        function setupAutoSave() {
+            const textarea = document.getElementById('id_body');
+            const titleInput = document.getElementById('id_title');
+
+            textarea.addEventListener('input', () => {
+                clearTimeout(autoSaveTimer);
+                autoSaveTimer = setTimeout(() => {
+                    localStorage.setItem('article_draft_body', textarea.value);
+                    localStorage.setItem('article_draft_title', titleInput.value);
+                    console.log('{% trans "草稿已自动保存" %}');
+                }, 30000);
+            });
+        }
+
+        // 页面加载时恢复草稿
+        function loadDraft() {
+            const savedBody = localStorage.getItem('article_draft_body');
+            const savedTitle = localStorage.getItem('article_draft_title');
+            const textarea = document.getElementById('id_body');
+            const titleInput = document.getElementById('id_title');
+
+            if (savedBody && !textarea.value) {
+                textarea.value = savedBody;
+            }
+            if (savedTitle && !titleInput.value) {
+                titleInput.value = savedTitle;
+            }
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            setupAutoSave();
+            loadDraft();
+        });
+    </script>
+{% endblock %}

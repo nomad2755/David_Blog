@@ -1,0 +1,181 @@
+{% extends 'share_layout/base.html' %}
+{% load i18n %}
+
+{% block header %}
+    <title>{% trans "编辑个人资料" %} | {{ SITE_NAME }}</title>
+{% endblock %}
+
+{% block content %}
+    <div class="mx-auto max-w-4xl px-4 py-4 lg:px-6 lg:py-6">
+        <div class="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+            <div class="p-6 md:p-8">
+                <h1 class="mb-6 text-2xl font-bold text-foreground">{% trans "编辑个人资料" %}</h1>
+
+                {# 成功/错误消息 #}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="mb-4 rounded-lg p-4 {% if message.tags == 'success' %}bg-green-100 text-green-800{% elif message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                    {# 左侧：头像上传 #}
+                    <div class="lg:col-span-1">
+                        <div class="text-center">
+                            <div class="mb-4">
+                                {% if user.avatar %}
+                                    <img src="{{ user.avatar.url }}" alt="{{ user.username }}"
+                                         class="mx-auto size-32 rounded-full object-cover border-4 border-border">
+                                {% else %}
+                                    <div class="mx-auto flex size-32 items-center justify-center rounded-full bg-muted text-4xl font-bold text-foreground">
+                                        {{ user.username|first|upper }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <form method="post" action="{% url 'accounts:avatar_upload' %}" enctype="multipart/form-data" class="space-y-3">
+                                {% csrf_token %}
+                                <div>
+                                    <label for="id_avatar" class="cursor-pointer rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors">
+                                        {% trans "更换头像" %}
+                                    </label>
+                                    {{ avatar_form.avatar }}
+                                </div>
+                                <p class="text-xs text-muted-foreground">{% trans "支持 JPG、PNG 格式，最大 2MB" %}</p>
+                                <button type="submit" class="w-full rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
+                                    {% trans "上传头像" %}
+                                </button>
+                            </form>
+                        </div>
+
+                        {# 用户统计信息 #}
+                        <div class="mt-6 rounded-lg border border-border p-4">
+                            <h3 class="mb-3 font-medium text-foreground">{% trans "账号信息" %}</h3>
+                            <div class="space-y-2 text-sm text-muted-foreground">
+                                <p>{% trans "用户名" %}: {{ user.username }}</p>
+                                <p>{% trans "注册时间" %}: {{ user.creation_time|date:"Y-m-d" }}</p>
+                                <p>{% trans "最后登录" %}: {{ user.last_login|date:"Y-m-d H:i" }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# 右侧：个人资料表单 #}
+                    <div class="lg:col-span-2">
+                        <form method="post" class="space-y-6">
+                            {% csrf_token %}
+
+                            {# 昵称 #}
+                            <div>
+                                <label for="id_nickname" class="mb-2 block text-sm font-medium text-foreground">
+                                    {% trans "昵称" %}
+                                </label>
+                                {{ form.nickname }}
+                                {% if form.nickname.errors %}
+                                    <p class="mt-1 text-sm text-red-500">{{ form.nickname.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            {# 邮箱 #}
+                            <div>
+                                <label for="id_email" class="mb-2 block text-sm font-medium text-foreground">
+                                    {% trans "邮箱" %} <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <p class="mt-1 text-sm text-red-500">{{ form.email.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            {# 个人简介 #}
+                            <div>
+                                <label for="id_bio" class="mb-2 block text-sm font-medium text-foreground">
+                                    {% trans "个人简介" %}
+                                </label>
+                                {{ form.bio }}
+                                {% if form.bio.errors %}
+                                    <p class="mt-1 text-sm text-red-500">{{ form.bio.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            {# 个人网站 #}
+                            <div>
+                                <label for="id_website" class="mb-2 block text-sm font-medium text-foreground">
+                                    {% trans "个人网站" %}
+                                </label>
+                                {{ form.website }}
+                                {% if form.website.errors %}
+                                    <p class="mt-1 text-sm text-red-500">{{ form.website.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            {# 所在地 #}
+                            <div>
+                                <label for="id_location" class="mb-2 block text-sm font-medium text-foreground">
+                                    {% trans "所在地" %}
+                                </label>
+                                {{ form.location }}
+                                {% if form.location.errors %}
+                                    <p class="mt-1 text-sm text-red-500">{{ form.location.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            {# 社交链接 #}
+                            <div class="rounded-lg border border-border p-4">
+                                <h3 class="mb-4 font-medium text-foreground">{% trans "社交链接" %}</h3>
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <label for="id_github" class="mb-2 block text-sm font-medium text-foreground">
+                                            {% trans "GitHub" %}
+                                        </label>
+                                        {{ form.github }}
+                                        {% if form.github.errors %}
+                                            <p class="mt-1 text-sm text-red-500">{{ form.github.errors.0 }}</p>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <label for="id_twitter" class="mb-2 block text-sm font-medium text-foreground">
+                                            {% trans "Twitter" %}
+                                        </label>
+                                        {{ form.twitter }}
+                                        {% if form.twitter.errors %}
+                                            <p class="mt-1 text-sm text-red-500">{{ form.twitter.errors.0 }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# 提交按钮 #}
+                            <div class="flex items-center justify-end gap-3 border-t border-border pt-6">
+                                <a href="{{ user.get_absolute_url }}" class="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors">
+                                    {% trans "取消" %}
+                                </a>
+                                <button type="submit" class="rounded-lg bg-primary px-6 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
+                                    {% trans "保存修改" %}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 头像预览
+        document.getElementById('id_avatar').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const avatar = document.querySelector('.rounded-full');
+                    if (avatar) {
+                        avatar.src = e.target.result;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+{% endblock %}

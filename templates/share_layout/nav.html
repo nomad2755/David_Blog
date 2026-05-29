@@ -11,19 +11,14 @@
     <div class="mx-auto flex max-w-6xl items-center gap-6 px-4 py-3 lg:px-6">
 
         {# Logo #}
-        <a href="/" class="group flex flex-col items-end leading-none">
-            <span class="text-[2.125rem] font-bold tracking-tight text-foreground transition-colors group-hover:text-primary">
+        <a href="/" class="group flex items-baseline gap-2.5 leading-none">
+            <span class="text-lg font-bold tracking-tight text-foreground transition-colors group-hover:text-primary">
                 {{ SITE_NAME }}
             </span>
-            {% if SITE_DESCRIPTION %}
-            <span class="text-[11px] text-muted-foreground tracking-wide">
-                {{ SITE_DESCRIPTION }}
-            </span>
-            {% endif %}
         </a>
 
         {# Desktop Nav #}
-        <nav class="hidden flex-1 items-center gap-0.5 lg:flex"
+        <nav class="hidden flex-1 items-center gap-1 lg:flex"
              hx-boost="true"
              hx-target="#main"
              hx-select="#main"
@@ -31,10 +26,8 @@
              hx-push-url="true">
             {% current_nav_item request as nav_active %}
             <a href="{% url 'blog:index' %}"
-               class="relative rounded-lg px-3.5 py-2 text-sm font-medium transition-all duration-200 hover:bg-secondary hover:text-foreground {% if nav_active == 'index' %}text-primary bg-primary/5{% else %}text-muted-foreground{% endif %}"
-               {% if nav_active == 'index' %}aria-current="page"{% endif %}>
+               class="rounded-lg px-4 py-2 text-sm font-medium transition-colors {% if nav_active == 'index' %}bg-primary text-primary-foreground{% else %}text-foreground hover:bg-muted{% endif %}">
                 {% trans 'index' %}
-                {% if nav_active == 'index' %}<span class="absolute bottom-0 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-primary"></span>{% endif %}
             </a>
 
             {# Each top-level category as its own nav link #}
@@ -74,27 +67,22 @@
                 {% else %}
                 {# Leaf category — simple link #}
                 <a href="{{ category.get_absolute_url }}"
-                   class="relative rounded-lg px-3.5 py-2 text-sm font-medium transition-all duration-200 hover:bg-secondary hover:text-foreground {% if request.path == category.get_absolute_url %}text-primary bg-primary/5{% else %}text-muted-foreground{% endif %}">
+                   class="rounded-lg px-4 py-2 text-sm font-medium transition-colors {% if request.path == category.get_absolute_url %}bg-primary text-primary-foreground{% else %}text-foreground hover:bg-muted{% endif %}">
                     {{ category.name }}
-                    {% if request.path == category.get_absolute_url %}<span class="absolute bottom-0 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-primary"></span>{% endif %}
                 </a>
                 {% endif %}
             {% endfor %}
 
             {# Divider #}
-            <span class="mx-1 h-4 w-px bg-border/60"></span>
+            <span class="mx-2 h-4 w-px bg-border"></span>
 
             <a href="{% url 'blog:archives' %}"
-               class="relative rounded-lg px-3.5 py-2 text-sm font-medium transition-all duration-200 hover:bg-secondary hover:text-foreground {% if nav_active == 'archives' %}text-primary bg-primary/5{% else %}text-muted-foreground{% endif %}"
-               {% if nav_active == 'archives' %}aria-current="page"{% endif %}>
-                归档
-                {% if nav_active == 'archives' %}<span class="absolute bottom-0 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-primary"></span>{% endif %}
+               class="rounded-lg px-4 py-2 text-sm font-medium transition-colors {% if nav_active == 'archives' %}bg-primary text-primary-foreground{% else %}text-foreground hover:bg-muted{% endif %}">
+                Archives
             </a>
             <a href="{% url 'blog:about' %}"
-               class="relative rounded-lg px-3.5 py-2 text-sm font-medium transition-all duration-200 hover:bg-secondary hover:text-foreground {% if request.path == '/about.html' %}text-primary bg-primary/5{% else %}text-muted-foreground{% endif %}"
-               {% if request.path == '/about.html' %}aria-current="page"{% endif %}>
-                About Me
-                {% if request.path == '/about.html' %}<span class="absolute bottom-0 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-primary"></span>{% endif %}
+               class="rounded-lg px-4 py-2 text-sm font-medium transition-colors {% if request.path == '/about.html' %}bg-primary text-primary-foreground{% else %}text-foreground hover:bg-muted{% endif %}">
+                About
             </a>
             {% for page in nav_pages %}
                 <a href="{{ page.get_absolute_url }}"
@@ -119,26 +107,12 @@
             <input id="header-search-input"
                    name="q"
                    type="search"
-                   placeholder="搜索文章..."
+                   placeholder="Search..."
                    class="flex-1 min-w-0 appearance-none bg-transparent p-0 border-0 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"/>
         </form>
 
-        {# Right: theme toggle + mobile menu #}
+        {# Right: mobile menu #}
         <div class="ml-auto flex items-center gap-0.5 lg:ml-0">
-            {# Theme toggle #}
-            <button class="size-9 rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                    @click="window.themeManager && window.themeManager.toggle()"
-                    aria-label="{% trans 'Toggle theme' %}">
-                {# Moon — shown in light mode #}
-                <svg class="size-[18px] mx-auto theme-icon-moon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-                </svg>
-                {# Sun — shown in dark mode #}
-                <svg class="size-[18px] mx-auto theme-icon-sun" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
-                </svg>
-            </button>
-
             {# Mobile menu button #}
             <button class="size-9 rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:hidden"
                     @click="$store.nav.mobileOpen = !$store.nav.mobileOpen"
@@ -178,7 +152,7 @@
                           d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
                 <input name="q" type="search"
-                       placeholder="搜索文章..."
+                       placeholder="Search..."
                        class="flex-1 appearance-none bg-transparent p-0 border-0 rounded-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"/>
             </form>
 
@@ -242,7 +216,7 @@
                 <svg class="size-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
                 </svg>
-                归档
+                Archives
             </a>
             <a href="{% url 'blog:about' %}"
                @click="$store.nav.mobileOpen = false"
@@ -250,7 +224,7 @@
                 <svg class="size-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                 </svg>
-                关于
+                About
             </a>
             {% for page in nav_pages %}
                 <a href="{{ page.get_absolute_url }}"

@@ -423,10 +423,70 @@ class AboutView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         blog_setting = get_blog_setting()
-        
-        # 设置SEO信息
-        context['seo_title'] = f"关于我 | {blog_setting.site_name}"
-        context['seo_description'] = f"了解{blog_setting.site_name}的博主背景和故事"
-        context['seo_keywords'] = "关于,个人介绍,博主"
-        
+
+        context['seo_title'] = f"About | {blog_setting.site_name}"
+        context['seo_description'] = f"Portfolio and blog of {blog_setting.site_name}"
+        context['seo_keywords'] = "portfolio,about,skills,experience"
+
+        # Parse skills JSON for template
+        import json
+        try:
+            context['skills_list'] = json.loads(blog_setting.portfolio_skills) if blog_setting.portfolio_skills else []
+        except (json.JSONDecodeError, TypeError):
+            context['skills_list'] = []
+
+        # Featured/pinned articles as projects
+        context['featured_articles'] = Article.objects.filter(
+            type='a', status='p', article_order__gt=0
+        ).order_by('-article_order')[:6]
+
+        return context
+
+
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import CreateView, UpdateView
+from django.urls import reverse_lazy
+from .forms import ArticleForm
+
+
+class ArticleCreateView(LoginRequiredMixin, CreateView):
+    """文章创建视图"""
+    model = Article
+    form_class = ArticleForm
+    template_name = 'blog/article_edit.html'
+    login_url = '/accounts/login/'
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy('blog:detail', kwargs={'slug': self.object.slug})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = _('创建文章')
+        context['submit_text'] = _('发布文章')
+        return context
+
+
+class ArticleUpdateView(LoginRequiredMixin, UpdateView):
+    """文章编辑视图"""
+    model = Article
+    form_class = ArticleForm
+    template_name = 'blog/article_edit.html'
+    login_url = '/accounts/login/'
+    slug_field = 'slug'
+
+    def get_queryset(self):
+        # 只允许编辑自己的文章
+        return Article.objects.filter(author=self.request.user)
+
+    def get_success_url(self):
+        return reverse_lazy('blog:detail', kwargs={'slug': self.object.slug})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = _('编辑文章')
+        context['submit_text'] = _('保存修改')
         return context

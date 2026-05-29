@@ -155,12 +155,25 @@
             功能
         </h3>
         <ul class="m-0 flex flex-col gap-0.5 p-0 list-none">
-            <li>
-                <a href="/admin/" rel="nofollow" hx-boost="false"
-                   class="block rounded-lg px-3 py-2 text-sm text-foreground transition-colors hover:bg-secondary hover:text-primary">
-                    {% trans 'management site' %}
-                </a>
-            </li>
+            {% if user.is_authenticated %}
+                <li>
+                    <a href="{% url 'blog:article_create' %}" rel="nofollow" hx-boost="false"
+                       class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10">
+                        <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        {% trans 'New Article' %}
+                    </a>
+                </li>
+            {% endif %}
+            {% if user.is_superuser %}
+                <li>
+                    <a href="/admin/" rel="nofollow" hx-boost="false"
+                       class="block rounded-lg px-3 py-2 text-sm text-foreground transition-colors hover:bg-secondary hover:text-primary">
+                        {% trans 'management site' %}
+                    </a>
+                </li>
+            {% endif %}
             {% if user.is_authenticated %}
                 <li>
                     <a href="{% url 'account:logout' %}" rel="nofollow" hx-boost="false"

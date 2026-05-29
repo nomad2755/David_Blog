@@ -77,21 +77,38 @@ class RegisterView(SecureFormView):
             })
 
 
-class LogoutView(LogoutRedirectView):
+class LogoutView(View):
     """
-    用户登出视图（重构版）
-
-    使用 LogoutRedirectView 基类，自动禁用缓存
+    用户登出视图
+    支持GET和POST请求
+    登出后重定向到首页并显示成功提示
     """
-    url = '/login/'
-
     def get(self, request, *args, **kwargs):
+        from django.contrib import messages
+
+        # 清理session
+        request.session.flush()
+
+        # 调用Django的logout
         logout(request)
+
+        # 清理缓存
         delete_sidebar_cache()
-        # 获取响应对象并删除登录标记 cookie
-        response = super(LogoutView, self).get(request, *args, **kwargs)
+
+        # 添加成功消息
+        messages.success(request, '已成功登出！')
+
+        # 重定向到首页
+        response = HttpResponseRedirect('/')
+
+        # 删除所有认证相关的cookie
         response.delete_cookie('logged_user')
+        response.delete_cookie('sessionid')
+
         return response
+
+    def post(self, request, *args, **kwargs):
+        return self.get(request, *args, **kwargs)
 
 
 class LoginView(LoginFormView):
@@ -120,10 +137,15 @@ class LoginView(LoginFormView):
         form = AuthenticationForm(data=self.request.POST, request=self.request)
 
         if form.is_valid():
+            from django.contrib import messages
             delete_sidebar_cache()
             logger.info(self.redirect_field_name)
 
             auth.login(self.request, form.get_user())
+
+            # 添加登录成功消息
+            messages.success(self.request, f'欢迎回来，{form.get_user().username}！')
+
             # 设置登录有效期
             if self.request.POST.get("remember"):
                 self.request.session.set_expiry(settings.REMEMBER_ME_LOGIN_TTL)
@@ -224,3 +246,96 @@ class ForgetPasswordEmailCode(View):
         utils.set_code(to_email, code)
 
         return HttpResponse("ok")
+
+
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import UpdateView
+from .forms import UserProfileForm, UserAvatarForm
+
+
+class UserProfileView(LoginRequiredMixin, UpdateView):
+    """用户个人资料编辑视图"""
+    model = BlogUser
+    form_class = UserProfileForm
+    template_name = 'account/profile_edit.html'
+    login_url = '/login/'
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def get_success_url(self):
+        return reverse('accounts:profile_edit')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['avatar_form'] = UserAvatarForm(instance=self.request.user)
+        context['user'] = self.request.user
+        return context
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        # 添加成功消息
+        from django.contrib import messages
+        messages.success(self.request, _('个人资料已更新'))
+        return response
+
+
+class UserAvatarUploadView(LoginRequiredMixin, View):
+    """用户头像上传视图"""
+    login_url = '/login/'
+
+    def post(self, request):
+        form = UserAvatarForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            from django.contrib import messages
+            messages.success(request, _('头像已更新'))
+            return HttpResponseRedirect(reverse('accounts:profile_edit'))
+        else:
+            from django.contrib import messages
+            messages.error(request, _('头像上传失败'))
+            return HttpResponseRedirect(reverse('accounts:profile_edit'))
+
+
+class UserProfileDetailView(View):
+    """用户个人主页"""
+    def get(self, request, username):
+        user = get_object_or_404(BlogUser, username=username)
+        from blog.models import Article
+        articles = Article.objects.filter(
+            author=user,
+            status='p'
+        ).order_by('-pub_time')[:10]
+
+        context = {
+            'profile_user': user,
+            'articles': articles,
+            'is_following': request.user.is_authenticated and request.user.is_following(user),
+            'followers_count': user.get_followers_count(),
+            'following_count': user.get_following_count(),
+        }
+        return render(request, 'account/profile_detail.html', context)
+
+
+class UserFollowView(LoginRequiredMixin, View):
+    """用户关注/取消关注"""
+    login_url = '/login/'
+
+    def post(self, request, username):
+        user_to_follow = get_object_or_404(BlogUser, username=username)
+
+        if request.user == user_to_follow:
+            from django.contrib import messages
+            messages.error(request, _('不能关注自己'))
+            return HttpResponseRedirect(user_to_follow.get_absolute_url())
+
+        if request.user.is_following(user_to_follow):
+            request.user.unfollow(user_to_follow)
+            from django.contrib import messages
+            messages.success(request, _('已取消关注'))
+        else:
+            request.user.follow(user_to_follow)
+            from django.contrib import messages
+            messages.success(request, _('已关注'))
+
+        return HttpResponseRedirect(user_to_follow.get_absolute_url())
