@@ -36,12 +36,31 @@
     <link rel="icon" href="/favicon.ico" type="image/x-icon"/>
     <link rel="apple-touch-icon" href="/favicon.ico"/>
 
-    <!-- 关键CSS：防止深色模式闪烁 + 首屏优化 -->
+    <!-- 关键CSS：防止深色模式闪烁 + 首屏布局优化 -->
     <style>
-        /* 立即应用明亮模式 */
+        /* === 主题色变量 === */
         :root {
-            --color-primary-500: 99, 102, 241;
-            --color-primary-600: 79, 70, 229;
+            --color-primary-50: 238 242 255;
+            --color-primary-100: 224 231 255;
+            --color-primary-200: 199 210 254;
+            --color-primary-300: 165 180 252;
+            --color-primary-400: 129 140 248;
+            --color-primary-500: 99 102 241;
+            --color-primary-600: 79 70 229;
+            --color-primary-700: 67 56 202;
+            --color-primary-800: 55 48 163;
+            --color-primary-900: 49 46 129;
+            --background: 255 255 255;
+            --foreground: 15 23 42;
+            --border: 226 232 240;
+            --muted: 241 245 249;
+            --muted-foreground: 100 116 139;
+            --secondary: 241 245 249;
+            --secondary-foreground: 15 23 42;
+            --card: 255 255 255;
+            --card-foreground: 15 23 42;
+            --accent: 241 245 249;
+            --accent-foreground: 15 23 42;
         }
 
         html, body {
@@ -49,12 +68,49 @@
             color: #0f172a !important;
         }
 
-        /* 首屏关键布局样式 - 防止布局抖动 */
+        /* === 首屏关键布局样式 - 防止布局抖动 === */
+        *, *:before, *:after {
+            box-sizing: border-box;
+        }
+        html {
+            font-size: 16px;
+            line-height: 1.5;
+            -webkit-text-size-adjust: 100%;
+        }
         body {
             margin: 0;
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* 容器：与 Tailwind max-w-6xl (72rem=1152px) 保持一致 */
+        .mx-auto { margin-left: auto; margin-right: auto; }
+        .max-w-6xl { max-width: 72rem; }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .w-full { width: 100%; }
+
+        /* 修复浏览器 autofill 导致输入框变黑 */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        textarea:-webkit-autofill,
+        textarea:-webkit-autofill:hover,
+        textarea:-webkit-autofill:focus,
+        select:-webkit-autofill,
+        select:-webkit-autofill:hover,
+        select:-webkit-autofill:focus {
+            -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+            -webkit-text-fill-color: #0f172a !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+        /* 表单输入框基础样式 */
+        input, textarea, select {
+            background-color: #ffffff;
+            color: #0f172a;
         }
 
         #page {
@@ -70,18 +126,6 @@
 
         #main {
             flex: 1;
-        }
-
-        /* 骨架屏样式 - 提升感知性能 */
-        .skeleton {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-        }
-
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
         }
 
         /* Alpine.js x-cloak 防止闪烁 */

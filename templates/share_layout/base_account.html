@@ -20,7 +20,75 @@
         {% block compress_css %}{% endblock %}
     {% endcompress %}
 
+    <!-- 关键CSS：防止首屏闪烁 -->
     <style>
+        :root {
+            --color-primary-50: 238 242 255;
+            --color-primary-100: 224 231 255;
+            --color-primary-200: 199 210 254;
+            --color-primary-300: 165 180 252;
+            --color-primary-400: 129 140 248;
+            --color-primary-500: 99 102 241;
+            --color-primary-600: 79 70 229;
+            --color-primary-700: 67 56 202;
+            --color-primary-800: 55 48 163;
+            --color-primary-900: 49 46 129;
+            --background: 255 255 255;
+            --foreground: 15 23 42;
+            --border: 226 232 240;
+            --muted: 241 245 249;
+            --muted-foreground: 100 116 139;
+            --secondary: 241 245 249;
+            --card: 255 255 255;
+            --card-foreground: 15 23 42;
+            --destructive: 239 68 68;
+        }
+
+        *, *:before, *:after { box-sizing: border-box; }
+        html {
+            font-size: 16px;
+            line-height: 1.5;
+            -webkit-text-size-adjust: 100%;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 背景变量快捷类 */
+        .bg-background { background-color: #ffffff; }
+        .bg-card { background-color: #ffffff; }
+        .text-foreground { color: #0f172a; }
+        .border-border { border-color: #e2e8f0; }
+        .text-muted-foreground { color: #64748b; }
+        .bg-primary { background-color: #6366f1; }
+        .text-primary-foreground { color: #ffffff; }
+        .text-destructive { color: #ef4444; }
+        .bg-destructive\/10 { background-color: rgba(239, 68, 68, 0.1); }
+        .border-destructive\/30 { border-color: rgba(239, 68, 68, 0.3); }
+
+        /* 修复浏览器 autofill 输入框变黑 */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        textarea:-webkit-autofill,
+        select:-webkit-autofill {
+            -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+            -webkit-text-fill-color: #0f172a !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+        input, textarea, select {
+            background-color: #ffffff;
+            color: #0f172a;
+        }
+
+        [x-cloak] { display: none !important; }
+
         .account-bg {
             background-image:
                 radial-gradient(at 20% 20%, rgb(var(--color-primary-500) / 0.08) 0%, transparent 50%),

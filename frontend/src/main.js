@@ -65,10 +65,38 @@ document.body.addEventListener('htmx:beforeSwap', function(evt) {
     }
 });
 
+// 更新导航栏激活状态
+function updateNavActiveState() {
+    const currentPath = window.location.pathname;
+    // 选中所有导航链接（桌面端 + 移动端）
+    document.querySelectorAll('nav a[href], nav button[data-category-url]').forEach(link => {
+        const href = link.getAttribute('href') || link.getAttribute('data-category-url');
+        if (!href) return;
+
+        const isActive = currentPath === href;
+
+        // 分类链接：绿色高亮
+        if (href.includes('/category/')) {
+            link.classList.toggle('bg-emerald-500', isActive);
+            link.classList.toggle('text-white', isActive);
+            link.classList.toggle('text-foreground', !isActive);
+            link.classList.toggle('hover:bg-emerald-50', !isActive);
+            link.classList.toggle('hover:text-emerald-600', !isActive);
+            // 带子分类的父级按钮
+            link.classList.toggle('text-emerald-600', isActive && link.tagName === 'BUTTON');
+            link.classList.toggle('bg-emerald-50', isActive && link.tagName === 'BUTTON');
+            link.classList.toggle('text-muted-foreground', !isActive && link.tagName === 'BUTTON');
+        }
+    });
+}
+
 // HTMX 加载完成后重新初始化 Alpine 组件
 document.body.addEventListener('htmx:afterSwap', function(evt) {
     // Alpine 会自动检测新的 DOM 元素并初始化
     console.log('Content swapped, Alpine auto-initializing new components');
+
+    // 更新导航栏高亮
+    updateNavActiveState();
 
     // 滚动到顶部（可选）
     if (evt.detail.boosted) {

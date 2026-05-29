@@ -39,7 +39,7 @@
                 <div class="relative" x-data="{ open: false }"
                      @mouseenter="open = true" @mouseleave="open = false">
                     <button @click="open = !open"
-                            class="relative flex items-center gap-1 rounded-lg px-3.5 py-2 text-sm font-medium transition-all duration-200 hover:bg-secondary hover:text-foreground {% if request.path == category.get_absolute_url %}text-primary bg-primary/5{% else %}text-muted-foreground{% endif %}">
+                            class="relative flex items-center gap-1 rounded-lg px-3.5 py-2 text-sm font-medium transition-all duration-200 hover:bg-emerald-50 hover:text-emerald-600 {% if request.path == category.get_absolute_url %}text-emerald-600 bg-emerald-50{% else %}text-foreground{% endif %}">
                         {{ category.name }}
                         <svg class="size-3.5 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -67,7 +67,7 @@
                 {% else %}
                 {# Leaf category — simple link #}
                 <a href="{{ category.get_absolute_url }}"
-                   class="rounded-lg px-4 py-2 text-sm font-medium transition-colors {% if request.path == category.get_absolute_url %}bg-primary text-primary-foreground{% else %}text-foreground hover:bg-muted{% endif %}">
+                   class="rounded-lg px-4 py-2 text-sm font-medium transition-colors {% if request.path == category.get_absolute_url %}bg-emerald-500 text-white{% else %}text-foreground hover:bg-emerald-50 hover:text-emerald-600{% endif %}">
                     {{ category.name }}
                 </a>
                 {% endif %}
