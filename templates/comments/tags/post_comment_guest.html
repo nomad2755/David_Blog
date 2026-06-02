@@ -1,4 +1,4 @@
-<!-- 发表评论表单 -->
+<!-- 游客评论表单 -->
 <div id="respond" class="comment-respond mt-10">
 
     <!-- 表单标题 -->
@@ -7,6 +7,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
         </svg>
         <h3 class="text-base font-semibold tracking-tight text-foreground m-0">发表评论</h3>
+        <span class="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">游客模式</span>
     </div>
 
     <!-- 评论表单 -->
@@ -19,6 +20,37 @@
         {% csrf_token %}
 
         <div class="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+            <!-- 游客信息 -->
+            <div class="grid grid-cols-1 gap-3 border-b border-border p-4 md:p-5 sm:grid-cols-3">
+                <div>
+                    <label for="id_guest_name" class="mb-1.5 block text-xs font-medium text-muted-foreground">
+                        昵称 <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.guest_name }}
+                    {% if form.guest_name.errors %}
+                        <p class="mt-1 text-xs text-red-500">{{ form.guest_name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="id_guest_email" class="mb-1.5 block text-xs font-medium text-muted-foreground">
+                        邮箱 <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.guest_email }}
+                    {% if form.guest_email.errors %}
+                        <p class="mt-1 text-xs text-red-500">{{ form.guest_email.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="id_guest_website" class="mb-1.5 block text-xs font-medium text-muted-foreground">
+                        网站
+                    </label>
+                    {{ form.guest_website }}
+                    {% if form.guest_website.errors %}
+                        <p class="mt-1 text-xs text-red-500">{{ form.guest_website.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
             <!-- 评论内容 -->
             <div class="p-4 md:p-5">
                 <textarea
@@ -50,14 +82,18 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
                     </svg>
                     <span>支持 Markdown</span>
-                    {% if COMMENT_NEED_REVIEW %}
-                        <span class="text-border">·</span>
-                        <span>审核后显示</span>
-                    {% endif %}
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <!-- 取消回复按钮（条件显示） -->
+                    <!-- 登录提示 -->
+                    <a href="{% url 'account:login' %}?next={{ request.get_full_path }}"
+                       class="text-xs text-muted-foreground hover:text-primary transition-colors"
+                       rel="nofollow"
+                       hx-boost="false">
+                        已有账号？去登录
+                    </a>
+
+                    <!-- 取消回复按钮 -->
                     <button type="button"
                             id="cancel_comment"
                             data-action="cancel-reply"
@@ -102,4 +138,3 @@
         </details>
     </form>
 </div>
-

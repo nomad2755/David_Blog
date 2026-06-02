@@ -354,9 +354,8 @@ class EsSearchView(SearchView):
 @csrf_exempt
 def fileupload(request):
     """
-    该方法需自己写调用端来上传图片，该方法仅提供图床功能
-    :param request:
-    :return:
+    通用文件上传接口（保留向后兼容）
+    注意：新功能请使用 EditorImageUploadView（/api/upload-image/）
     """
     if request.method == 'POST':
         sign = request.GET.get('sign', None)
@@ -367,23 +366,23 @@ def fileupload(request):
         response = []
         for filename in request.FILES:
             timestr = timezone.now().strftime('%Y/%m/%d')
-            imgextensions = ['jpg', 'png', 'jpeg', 'bmp']
+            imgextensions = ['jpg', 'png', 'jpeg', 'bmp', 'gif', 'webp']
             fname = u''.join(str(filename))
             isimage = len([i for i in imgextensions if fname.find(i) >= 0]) > 0
-            base_dir = os.path.join(settings.STATICFILES, "files" if not isimage else "image", timestr)
+            # 修复：使用 MEDIA_ROOT 替代 STATICFILES 保存上传文件
+            subdir = "files" if not isimage else "image"
+            base_dir = os.path.join(settings.MEDIA_ROOT, subdir, timestr)
             if not os.path.exists(base_dir):
                 os.makedirs(base_dir)
             savepath = os.path.normpath(os.path.join(base_dir, f"{uuid.uuid4().hex}{os.path.splitext(filename)[-1]}"))
-            if not savepath.startswith(base_dir):
+            if not savepath.startswith(os.path.normpath(base_dir)):
                 return HttpResponse("only for post")
             with open(savepath, 'wb+') as wfile:
                 for chunk in request.FILES[filename].chunks():
                     wfile.write(chunk)
-            if isimage:
-                from PIL import Image
-                image = Image.open(savepath)
-                image.save(savepath, quality=20, optimize=True)
-            url = static(savepath)
+            # 修复：生成 MEDIA_URL 路径而非 static() 路径
+            rel_path = os.path.relpath(savepath, settings.MEDIA_ROOT)
+            url = f"{settings.MEDIA_URL}{rel_path}"
             response.append(url)
         return HttpResponse(response)
 
@@ -435,6 +434,20 @@ class AboutView(ListView):
         except (json.JSONDecodeError, TypeError):
             context['skills_list'] = []
 
+        # Parse resume work experience JSON
+        try:
+            context['work_experience_list'] = json.loads(blog_setting.resume_work_experience) if blog_setting.resume_work_experience else []
+        except (json.JSONDecodeError, TypeError):
+            context['work_experience_list'] = []
+
+        # Parse resume strengths into list
+        if blog_setting.resume_strengths:
+            context['strengths_list'] = [
+                s.strip() for s in blog_setting.resume_strengths.strip().split('\n') if s.strip()
+            ]
+        else:
+            context['strengths_list'] = []
+
         # Featured/pinned articles as projects
         context['featured_articles'] = Article.objects.filter(
             type='a', status='p', article_order__gt=0
@@ -444,9 +457,65 @@ class AboutView(ListView):
 
 
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views import View
 from django.views.generic import CreateView, UpdateView
 from django.urls import reverse_lazy
 from .forms import ArticleForm
+
+
+class EditorImageUploadView(LoginRequiredMixin, View):
+    """编辑器图片上传 API
+
+    支持 Markdown 编辑器内的图片上传，返回 JSON 格式的图片 URL。
+    接受 POST 请求，文件字段名为 'image'。
+    """
+    login_url = '/accounts/login/'
+
+    def post(self, request):
+        from django.http import JsonResponse
+
+        image_file = request.FILES.get('image')
+        if not image_file:
+            return JsonResponse({'success': 0, 'message': '未获取到图片文件'}, status=400)
+
+        # 验证文件类型
+        allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp', 'image/svg+xml']
+        if image_file.content_type not in allowed_types:
+            return JsonResponse({
+                'success': 0,
+                'message': f'不支持的图片格式: {image_file.content_type}'
+            }, status=400)
+
+        # 限制文件大小 (10MB)
+        if image_file.size > 10 * 1024 * 1024:
+            return JsonResponse({'success': 0, 'message': '图片大小不能超过 10MB'}, status=400)
+
+        # 生成保存路径: uploads/editor/YYYY/MM/uuid.ext
+        timestr = timezone.now().strftime('%Y/%m')
+        ext = os.path.splitext(image_file.name)[1].lower()
+        if ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg']:
+            ext = '.png'
+        filename = f"{uuid.uuid4().hex}{ext}"
+        rel_dir = os.path.join('editor', timestr)
+        abs_dir = os.path.join(settings.MEDIA_ROOT, rel_dir)
+        os.makedirs(abs_dir, exist_ok=True)
+
+        savepath = os.path.normpath(os.path.join(abs_dir, filename))
+        if not savepath.startswith(os.path.normpath(abs_dir)):
+            return JsonResponse({'success': 0, 'message': '非法文件路径'}, status=400)
+
+        with open(savepath, 'wb+') as f:
+            for chunk in image_file.chunks():
+                f.write(chunk)
+
+        # 构建可访问的 URL
+        url = f"{settings.MEDIA_URL}{rel_dir}/{filename}"
+
+        return JsonResponse({
+            'success': 1,
+            'message': '上传成功',
+            'url': url,
+        })
 
 
 class ArticleCreateView(LoginRequiredMixin, CreateView):

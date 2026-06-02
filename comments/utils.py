@@ -13,17 +13,21 @@ def send_comment_email(comment):
     site = get_current_site().domain
     subject = _('Thanks for your comment')
     article_url = f"https://{site}{comment.article.get_absolute_url()}"
-    html_content = _("""<p>Thank you very much for your comments on this site</p>
+
+    # 给评论者发感谢邮件（仅注册用户有邮箱）
+    author_email = comment.author.email if comment.author else comment.guest_email
+    if author_email:
+        html_content = _("""<p>Thank you very much for your comments on this site</p>
                     You can visit <a href="%(article_url)s" rel="bookmark">%(article_title)s</a>
                     to review your comments,
                     Thank you again!
                     <br />
                     If the link above cannot be opened, please copy this link to your browser.
                     %(article_url)s""") % {'article_url': article_url, 'article_title': comment.article.title}
-    tomail = comment.author.email
-    send_email([tomail], subject, html_content)
+        send_email([author_email], subject, html_content)
+
     try:
-        if comment.parent_comment:
+        if comment.parent_comment and comment.parent_comment.author:
             html_content = _("""Your comment on <a href="%(article_url)s" rel="bookmark">%(article_title)s</a><br/> has
                    received a reply. <br/> %(comment_body)s
                     <br/>
@@ -107,16 +111,17 @@ def _send_notification_email(recipient, comment, notification_type):
 
 def _get_notification_message(notification_type, comment):
     """获取通知消息"""
+    author_name = comment.display_name
     messages = {
         'article_comment': _('%(author)s commented on your article "%(title)s"') % {
-            'author': comment.author.username,
+            'author': author_name,
             'title': comment.article.title
         },
         'reply': _('%(author)s replied to your comment') % {
-            'author': comment.author.username
+            'author': author_name
         },
         'mention': _('%(author)s mentioned you in a comment') % {
-            'author': comment.author.username
+            'author': author_name
         },
     }
     return messages.get(notification_type, _('New comment notification'))

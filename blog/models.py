@@ -483,6 +483,57 @@ class BlogSettings(models.Model):
     portfolio_linkedin = models.URLField(
         _('LinkedIn URL'), blank=True, default='')
 
+    # ========== 个人简历字段 ==========
+    EDUCATION_CHOICES = [
+        ('college', _('大专')),
+        ('bachelor', _('本科')),
+        ('master', _('硕士')),
+        ('phd', _('博士')),
+    ]
+    JOB_STATUS_CHOICES = [
+        ('employed', _('在职-考虑机会')),
+        ('resigned', _('离职-随时到岗')),
+        ('student', _('在校学生')),
+    ]
+
+    # 基本信息
+    resume_name = models.CharField(
+        _('姓名'), max_length=50, blank=True, default='')
+    resume_avatar = models.ImageField(
+        _('头像'), upload_to='resume/', blank=True, null=True,
+        help_text=_('建议尺寸 200x200 像素'))
+    resume_age = models.PositiveIntegerField(
+        _('年龄'), default=0, blank=True)
+    resume_years_experience = models.PositiveIntegerField(
+        _('工作经验(年)'), default=0, blank=True)
+    resume_education = models.CharField(
+        _('学历'), max_length=20, choices=EDUCATION_CHOICES,
+        blank=True, default='')
+    resume_phone = models.CharField(
+        _('手机号'), max_length=20, blank=True, default='')
+    resume_wechat = models.CharField(
+        _('微信号'), max_length=50, blank=True, default='')
+
+    # 求职信息
+    resume_job_status = models.CharField(
+        _('求职状态'), max_length=20, choices=JOB_STATUS_CHOICES,
+        blank=True, default='resigned')
+    resume_job_expectation = models.TextField(
+        _('求职期望'), blank=True, default='',
+        help_text=_('如：Python开发工程师 | 深圳/上海 | 25-35K'))
+    resume_strengths = models.TextField(
+        _('个人优势'), blank=True, default='',
+        help_text=_('每行一条优势，前端自动转为标签展示'))
+
+    # 工作经历（JSON格式）
+    resume_work_experience = models.TextField(
+        _('工作经历'), blank=True, default='',
+        help_text=_('JSON格式，包含公司、职位、时间段和项目列表'))
+    # 最近项目经历（Markdown格式）
+    resume_recent_projects = MDTextField(
+        _('最近项目经历'), blank=True, default='',
+        help_text=_('支持Markdown格式'))
+
     class Meta:
         verbose_name = _('Website configuration')
         verbose_name_plural = verbose_name

@@ -56,6 +56,19 @@ def seo_processor(requests):
             "PORTFOLIO_CONTACT_EMAIL": setting.portfolio_contact_email,
             "PORTFOLIO_GITHUB": setting.portfolio_github,
             "PORTFOLIO_LINKEDIN": setting.portfolio_linkedin,
+            # 简历数据
+            "RESUME_NAME": setting.resume_name,
+            "RESUME_AVATAR": setting.resume_avatar.url if setting.resume_avatar else '',
+            "RESUME_AGE": setting.resume_age,
+            "RESUME_YEARS_EXPERIENCE": setting.resume_years_experience,
+            "RESUME_EDUCATION": setting.get_resume_education_display(),
+            "RESUME_PHONE": setting.resume_phone,
+            "RESUME_WECHAT": setting.resume_wechat,
+            "RESUME_JOB_STATUS": setting.get_resume_job_status_display(),
+            "RESUME_JOB_EXPECTATION": setting.resume_job_expectation,
+            "RESUME_STRENGTHS": setting.resume_strengths,
+            "RESUME_WORK_EXPERIENCE": setting.resume_work_experience,
+            "RESUME_RECENT_PROJECTS": setting.resume_recent_projects,
         }
         cache.set(key, value, 60 * 60 * 10)
         return value

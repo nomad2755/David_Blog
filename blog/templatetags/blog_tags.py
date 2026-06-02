@@ -738,5 +738,12 @@ def plugin_widget(context, plugin_name, widget_type='default', **kwargs):
             return mark_safe(plugin.render_template(template_name, widget_context))
         except Exception as e:
             logger.error(f"Error rendering plugin widget {plugin_name}.{widget_type}: {e}")
-    
+
     return ""
+
+
+@register.filter
+@stringfilter
+def split_comma(value):
+    """将逗号分隔的字符串拆分为列表，用于模板中 for 循环"""
+    return [item.strip() for item in value.split(',') if item.strip()]

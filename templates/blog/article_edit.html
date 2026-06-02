@@ -60,7 +60,7 @@
                             {% trans "文章内容" %} <span class="text-red-500">*</span>
                         </label>
                         <div id="editor-container" class="rounded-lg border border-border">
-                            <div id="editor-toolbar" class="flex items-center gap-2 border-b border-border bg-muted p-2">
+                            <div id="editor-toolbar" class="flex flex-wrap items-center gap-1 border-b border-border bg-muted p-2">
                                 <button type="button" onclick="insertMarkdown('**', '**')" class="rounded p-1.5 hover:bg-background" title="{% trans '加粗' %}">
                                     <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 12h8a4 4 0 100-8H6v8zm0 0h10a4 4 0 110 8H6v-8z"/></svg>
                                 </button>
@@ -69,9 +69,6 @@
                                 </button>
                                 <button type="button" onclick="insertMarkdown('[', '](url)')" class="rounded p-1.5 hover:bg-background" title="{% trans '链接' %}">
                                     <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-                                </button>
-                                <button type="button" onclick="insertMarkdown('![alt](', ')')" class="rounded p-1.5 hover:bg-background" title="{% trans '图片' %}">
-                                    <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                 </button>
                                 <button type="button" onclick="insertMarkdown('\n```\n', '\n```\n')" class="rounded p-1.5 hover:bg-background" title="{% trans '代码块' %}">
                                     <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
@@ -82,18 +79,47 @@
                                 <button type="button" onclick="insertMarkdown('\n- ', '')" class="rounded p-1.5 hover:bg-background" title="{% trans '列表' %}">
                                     <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
                                 </button>
-                                <div class="mx-2 h-4 w-px bg-border"></div>
+                                <div class="mx-1 h-4 w-px bg-border"></div>
+                                {# 图片上传按钮 #}
+                                <button type="button" id="image-upload-btn" class="rounded p-1.5 hover:bg-background text-primary" title="{% trans '上传图片 (或直接拖拽/粘贴图片到编辑器)' %}">
+                                    <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                </button>
+                                <input type="file" id="image-file-input" accept="image/*" multiple class="hidden" />
+                                <div class="mx-1 h-4 w-px bg-border"></div>
                                 <button type="button" onclick="togglePreview()" class="rounded p-1.5 hover:bg-background" title="{% trans '预览' %}">
                                     <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                 </button>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2">
+                            {# 上传进度条 #}
+                            <div id="upload-progress" class="hidden border-b border-border bg-muted/50 px-3 py-2">
+                                <div class="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <svg class="size-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                    </svg>
+                                    <span id="upload-status">{% trans '正在上传图片...' %}</span>
+                                </div>
+                                <div class="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-border">
+                                    <div id="upload-bar" class="h-full bg-primary transition-all duration-300 rounded-full" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            {# 拖拽提示遮罩 #}
+                            <div id="drop-overlay" class="hidden absolute inset-0 z-10 flex items-center justify-center rounded-lg border-2 border-dashed border-primary bg-primary/5 backdrop-blur-[1px]">
+                                <div class="flex flex-col items-center gap-2 text-primary">
+                                    <svg class="size-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                    <span class="text-sm font-medium">{% trans '松开即可上传图片' %}</span>
+                                </div>
+                            </div>
+                            <div class="relative grid grid-cols-1 md:grid-cols-2">
                                 <div id="editor-write" class="border-r border-border">
                                     {{ form.body }}
                                 </div>
                                 <div id="editor-preview" class="hidden overflow-auto p-4 prose prose-sm max-w-none" style="max-height: 500px;"></div>
                             </div>
                         </div>
+                        <p class="mt-1.5 text-xs text-muted-foreground">
+                            {% trans '支持 Markdown 格式。可点击 🖼 按钮上传图片，也可直接拖拽图片或 Ctrl+V 粘贴图片到编辑器中。' %}
+                        </p>
                         {% if form.body.errors %}
                             <p class="mt-1 text-sm text-red-500">{{ form.body.errors.0 }}</p>
                         {% endif %}
@@ -207,27 +233,37 @@
     </div>
 
     <script>
-        // Markdown编辑器功能
+        // ========== Markdown 编辑器核心功能 ==========
+
         function insertMarkdown(prefix, suffix) {
             const textarea = document.getElementById('id_body');
             const start = textarea.selectionStart;
             const end = textarea.selectionEnd;
             const selectedText = textarea.value.substring(start, end);
-            const replacement = prefix + (selectedText || '{% trans "文本" %}') + suffix;
+            const replacement = prefix + (selectedText || '文本') + suffix;
 
             textarea.value = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
             textarea.focus();
-            textarea.setSelectionRange(start + prefix.length, start + prefix.length + (selectedText.length || {% trans "文本" %}.length));
+            textarea.setSelectionRange(start + prefix.length, start + prefix.length + (selectedText.length || 2));
         }
 
-        // 预览功能
+        // 在光标位置插入文本（不替换选区）
+        function insertAtCursor(text) {
+            const textarea = document.getElementById('id_body');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            textarea.value = textarea.value.substring(0, start) + text + textarea.value.substring(end);
+            const newPos = start + text.length;
+            textarea.focus();
+            textarea.setSelectionRange(newPos, newPos);
+        }
+
+        // ========== 预览功能 ==========
         let previewVisible = false;
         function togglePreview() {
             const preview = document.getElementById('editor-preview');
             const textarea = document.getElementById('id_body');
-
             previewVisible = !previewVisible;
-
             if (previewVisible) {
                 preview.classList.remove('hidden');
                 preview.innerHTML = markdownToHtml(textarea.value);
@@ -236,73 +272,198 @@
             }
         }
 
-        // 简单的Markdown转HTML（实际项目中应使用专业库如marked.js）
         function markdownToHtml(md) {
             if (!md) return '';
             let html = md
-                // 转义HTML特殊字符
                 .replace(/&/g, '&amp;')
                 .replace(/</g, '&lt;')
                 .replace(/>/g, '&gt;')
-                // 标题
                 .replace(/^### (.*$)/gim, '<h3>$1</h3>')
                 .replace(/^## (.*$)/gim, '<h2>$1</h2>')
                 .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-                // 粗体和斜体
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                 .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                // 链接和图片
-                .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="max-w-full h-auto">')
+                .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="max-w-full h-auto rounded">')
                 .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="text-primary hover:underline">$1</a>')
-                // 代码块
                 .replace(/```([\s\S]*?)```/g, '<pre class="bg-muted p-4 rounded-lg overflow-x-auto"><code>$1</code></pre>')
-                // 行内代码
                 .replace(/`(.*?)`/g, '<code class="bg-muted px-1.5 py-0.5 rounded text-sm">$1</code>')
-                // 引用
                 .replace(/^> (.*$)/gim, '<blockquote class="border-l-4 border-primary pl-4 italic text-muted-foreground">$1</blockquote>')
-                // 列表
                 .replace(/^- (.*$)/gim, '<li class="ml-4">$1</li>')
-                // 换行
                 .replace(/\n/g, '<br>');
-
             return html;
         }
 
-        // 自动保存功能（每30秒）
-        let autoSaveTimer = null;
-        function setupAutoSave() {
-            const textarea = document.getElementById('id_body');
-            const titleInput = document.getElementById('id_title');
+        // ========== 图片上传功能 ==========
 
+        const UPLOAD_URL = '{% url "blog:editor_upload_image" %}';
+        const CSRF_TOKEN = '{{ csrf_token }}';
+
+        // 上传单个文件，返回 Promise<string|null>
+        function uploadImage(file) {
+            return new Promise((resolve, reject) => {
+                const formData = new FormData();
+                formData.append('image', file);
+
+                const xhr = new XMLHttpRequest();
+
+                // 进度回调
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const pct = Math.round((e.loaded / e.total) * 100);
+                        updateUploadProgress(pct, file.name);
+                    }
+                });
+
+                xhr.addEventListener('load', () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            const data = JSON.parse(xhr.responseText);
+                            if (data.success === 1 && data.url) {
+                                resolve(data.url);
+                            } else {
+                                reject(new Error(data.message || '上传失败'));
+                            }
+                        } catch (e) {
+                            reject(new Error('服务器返回数据格式错误'));
+                        }
+                    } else if (xhr.status === 403) {
+                        reject(new Error('登录已过期，请刷新页面重新登录'));
+                    } else {
+                        reject(new Error('上传失败 (HTTP ' + xhr.status + ')'));
+                    }
+                });
+
+                xhr.addEventListener('error', () => reject(new Error('网络错误')));
+                xhr.addEventListener('abort', () => reject(new Error('上传已取消')));
+
+                xhr.open('POST', UPLOAD_URL);
+                xhr.setRequestHeader('X-CSRFToken', CSRF_TOKEN);
+                xhr.send(formData);
+            });
+        }
+
+        // 批量上传文件
+        async function uploadFiles(files) {
+            if (!files || files.length === 0) return;
+
+            const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+            if (imageFiles.length === 0) return;
+
+            showUploadProgress();
+
+            for (let i = 0; i < imageFiles.length; i++) {
+                const file = imageFiles[i];
+                try {
+                    updateUploadProgress(0, file.name + (imageFiles.length > 1 ? ` (${i + 1}/${imageFiles.length})` : ''));
+                    const url = await uploadImage(file);
+                    const markdown = `\n![${file.name}](${url})\n`;
+                    insertAtCursor(markdown);
+                } catch (err) {
+                    alert('图片上传失败: ' + err.message);
+                }
+            }
+
+            hideUploadProgress();
+        }
+
+        // 进度条控制
+        function showUploadProgress() {
+            document.getElementById('upload-progress').classList.remove('hidden');
+        }
+        function hideUploadProgress() {
+            document.getElementById('upload-progress').classList.add('hidden');
+            document.getElementById('upload-bar').style.width = '0%';
+        }
+        function updateUploadProgress(pct, filename) {
+            document.getElementById('upload-bar').style.width = pct + '%';
+            document.getElementById('upload-status').textContent =
+                pct < 100 ? `正在上传 ${filename} ... ${pct}%` : `处理中 ${filename} ...`;
+        }
+
+        // ========== 初始化：绑定所有事件 ==========
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const textarea = document.getElementById('id_body');
+            const fileInput = document.getElementById('image-file-input');
+            const uploadBtn = document.getElementById('image-upload-btn');
+            const editorContainer = document.getElementById('editor-container');
+            const dropOverlay = document.getElementById('drop-overlay');
+
+            // 1. 工具栏图片按钮 → 触发文件选择
+            uploadBtn.addEventListener('click', () => fileInput.click());
+
+            // 2. 文件选择完成 → 上传
+            fileInput.addEventListener('change', () => {
+                uploadFiles(fileInput.files);
+                fileInput.value = ''; // 清空以允许重复选择同一文件
+            });
+
+            // 3. 拖拽上传
+            let dragCounter = 0;
+            editorContainer.addEventListener('dragenter', (e) => {
+                e.preventDefault();
+                dragCounter++;
+                if (e.dataTransfer.types.includes('Files')) {
+                    dropOverlay.classList.remove('hidden');
+                }
+            });
+            editorContainer.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                dragCounter--;
+                if (dragCounter <= 0) {
+                    dragCounter = 0;
+                    dropOverlay.classList.add('hidden');
+                }
+            });
+            editorContainer.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+            editorContainer.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dragCounter = 0;
+                dropOverlay.classList.add('hidden');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    uploadFiles(files);
+                }
+            });
+
+            // 4. 粘贴上传（Ctrl+V / Cmd+V 粘贴图片）
+            textarea.addEventListener('paste', (e) => {
+                const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+                const imageFiles = [];
+                for (const item of items) {
+                    if (item.type.startsWith('image/')) {
+                        const file = item.getAsFile();
+                        if (file) imageFiles.push(file);
+                    }
+                }
+                if (imageFiles.length > 0) {
+                    e.preventDefault();
+                    uploadFiles(imageFiles);
+                }
+            });
+
+            // 5. 自动保存草稿（每30秒）
+            let autoSaveTimer = null;
+            const titleInput = document.getElementById('id_title');
             textarea.addEventListener('input', () => {
                 clearTimeout(autoSaveTimer);
                 autoSaveTimer = setTimeout(() => {
                     localStorage.setItem('article_draft_body', textarea.value);
                     localStorage.setItem('article_draft_title', titleInput.value);
-                    console.log('{% trans "草稿已自动保存" %}');
                 }, 30000);
             });
-        }
 
-        // 页面加载时恢复草稿
-        function loadDraft() {
+            // 6. 恢复草稿（仅新建文章时）
             const savedBody = localStorage.getItem('article_draft_body');
             const savedTitle = localStorage.getItem('article_draft_title');
-            const textarea = document.getElementById('id_body');
-            const titleInput = document.getElementById('id_title');
-
             if (savedBody && !textarea.value) {
                 textarea.value = savedBody;
             }
             if (savedTitle && !titleInput.value) {
                 titleInput.value = savedTitle;
             }
-        }
-
-        // 初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            setupAutoSave();
-            loadDraft();
         });
     </script>
 {% endblock %}

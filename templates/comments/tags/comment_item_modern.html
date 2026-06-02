@@ -11,9 +11,8 @@
         <div class="flex items-start gap-3 md:gap-4">
             <!-- 头像 -->
             <div class="flex-shrink-0">
-                <img alt="{{ comment_item.author.username }}"
-                     src="{{ comment_item.author.email|gravatar_url:80 }}"
-                     srcset="{{ comment_item.author.email|gravatar_url:160 }} 2x"
+                <img alt="{{ comment_item.display_name }}"
+                     src="{{ comment_item.display_avatar_url }}"
                      class="size-10 rounded-full ring-2 ring-border"
                      loading="lazy"
                      decoding="async">
@@ -25,20 +24,38 @@
                 <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
                     <div class="flex items-center gap-2">
                         <cite class="not-italic font-semibold text-sm text-foreground">
-                            <a {% if comment_item.author.is_superuser %}
-                                   href="{{ comment_item.author.get_absolute_url }}"
-                               {% else %}
-                                   href="#"
-                               {% endif %}
-                               class="hover:text-primary transition-colors"
-                               rel="external nofollow">
-                                {{ comment_item.author.username }}
-                            </a>
+                            {% if comment_item.author %}
+                                <a {% if comment_item.author.is_superuser %}
+                                       href="{{ comment_item.author.get_absolute_url }}"
+                                   {% else %}
+                                       href="#"
+                                   {% endif %}
+                                   class="hover:text-primary transition-colors"
+                                   rel="external nofollow">
+                                    {{ comment_item.display_name }}
+                                </a>
+                            {% else %}
+                                {% if comment_item.guest_website %}
+                                    <a href="{{ comment_item.guest_website }}"
+                                       class="hover:text-primary transition-colors"
+                                       target="_blank"
+                                       rel="external nofollow">
+                                        {{ comment_item.display_name }}
+                                    </a>
+                                {% else %}
+                                    <span>{{ comment_item.display_name }}</span>
+                                {% endif %}
+                            {% endif %}
                         </cite>
 
-                        {% if comment_item.author.is_superuser %}
+                        {% if comment_item.author and comment_item.author.is_superuser %}
                             <span class="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
                                 博主
+                            </span>
+                        {% endif %}
+                        {% if comment_item.is_guest %}
+                            <span class="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
+                                游客
                             </span>
                         {% endif %}
                     </div>
@@ -58,7 +75,7 @@
                         回复
                         <a href="#comment-{{ comment_item.parent_comment.pk }}"
                            class="font-medium text-primary hover:text-primary/80 transition-colors">
-                            @{{ comment_item.parent_comment.author.username }}
+                            @{{ comment_item.parent_comment.display_name }}
                         </a>
                     </div>
                 {% endif %}
@@ -193,7 +210,7 @@
                                 <svg class="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
                                 </svg>
-                                回复 <span class="font-medium text-foreground">{{ comment_item.author.username }}</span>
+                                回复 <span class="font-medium text-foreground">{{ comment_item.display_name }}</span>
                                 <button type="button" @click="cancelReply()" class="ml-auto text-xs text-muted-foreground hover:text-foreground transition-colors">取消</button>
                             </div>
                             <div class="p-4">

@@ -69,4 +69,8 @@ urlpatterns = [
         'article/<slug>/edit/',
         views.ArticleUpdateView.as_view(),
         name='article_edit'),
+    path(
+        'api/upload-image/',
+        views.EditorImageUploadView.as_view(),
+        name='editor_upload_image'),
 ]

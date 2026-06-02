@@ -1,75 +1,111 @@
 # Create your views here.
-from django.core.exceptions import ValidationError
+import logging
+
+from django.contrib import messages
 from django.http import HttpResponseRedirect, JsonResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
+from django.utils.decorators import method_decorator
 from django.views import View
+from django.views.decorators.csrf import csrf_protect
 
 from accounts.models import BlogUser
 from blog.models import Article
-from djangoblog.base_views import AuthenticatedFormView
 from .forms import CommentForm
 from .models import Comment, CommentReaction
 from .utils import parse_mentions, get_unread_notifications_count, mark_notifications_as_read
 
+logger = logging.getLogger(__name__)
 
-class CommentPostView(AuthenticatedFormView):
+
+class CommentPostView(View):
     """
-    评论提交视图
-
-    使用 AuthenticatedFormView 基类，自动提供：
-    - 登录验证（未登录用户会被重定向）
-    - CSRF 保护
+    评论提交视图（支持登录用户和游客评论）
+    使用标准 POST + Redirect 模式，确保提交后有明确的成功反馈。
     """
-    form_class = CommentForm
-    template_name = 'blog/article_detail.html'
 
-    def get(self, request, *args, **kwargs):
-        article_id = self.kwargs['article_id']
+    @method_decorator(csrf_protect)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    def get(self, request, article_id):
         article = get_object_or_404(Article, pk=article_id)
-        url = article.get_absolute_url()
-        return HttpResponseRedirect(url + "#comments")
+        return HttpResponseRedirect(article.get_absolute_url() + "#comments")
 
-    def form_invalid(self, form):
-        article_id = self.kwargs['article_id']
-        article = get_object_or_404(Article, pk=article_id)
-
-        return self.render_to_response({
-            'form': form,
-            'article': article
-        })
-
-    def form_valid(self, form):
-        """提交的数据验证合法后的逻辑"""
-        user = self.request.user
-        author = BlogUser.objects.get(pk=user.pk)
-        article_id = self.kwargs['article_id']
+    def post(self, request, article_id):
         article = get_object_or_404(Article, pk=article_id)
 
+        # 检查文章评论是否关闭
         if article.comment_status == 'c' or article.status == 'c':
-            raise ValidationError("该文章评论已关闭.")
-        comment = form.save(False)
+            messages.error(request, '该文章评论已关闭。')
+            return HttpResponseRedirect(article.get_absolute_url())
+
+        form = CommentForm(request.POST)
+
+        if not form.is_valid():
+            # 表单验证失败，重新渲染页面
+            context = {
+                'form': form,
+                'article': article,
+                'page_title': article.title,
+            }
+            messages.error(request, '评论提交失败，请检查填写内容。')
+            return render(request, 'blog/article_detail.html', context)
+
+        comment = form.save(commit=False)
         comment.article = article
-        from djangoblog.utils import get_blog_setting
-        settings = get_blog_setting()
-        if not settings.comment_need_review:
+
+        is_authenticated = request.user.is_authenticated
+
+        if is_authenticated:
+            comment.author = BlogUser.objects.get(pk=request.user.pk)
+            from djangoblog.utils import get_blog_setting
+            blog_settings = get_blog_setting()
+            if not blog_settings.comment_need_review:
+                comment.is_enable = True
+        else:
+            # 游客验证
+            guest_name = form.cleaned_data.get('guest_name', '').strip()
+            guest_email = form.cleaned_data.get('guest_email', '').strip()
+
+            if not guest_name:
+                form.add_error('guest_name', '请输入昵称')
+                messages.error(request, '请输入昵称。')
+                return render(request, 'blog/article_detail.html', {
+                    'form': form, 'article': article, 'page_title': article.title,
+                })
+            if not guest_email:
+                form.add_error('guest_email', '请输入邮箱')
+                messages.error(request, '请输入邮箱。')
+                return render(request, 'blog/article_detail.html', {
+                    'form': form, 'article': article, 'page_title': article.title,
+                })
+
+            comment.author = None
+            comment.guest_name = guest_name
+            comment.guest_email = guest_email
+            comment.guest_website = form.cleaned_data.get('guest_website', '').strip()
             comment.is_enable = True
-        comment.author = author
 
-        if form.cleaned_data['parent_comment_id']:
-            parent_comment = Comment.objects.get(
-                pk=form.cleaned_data['parent_comment_id'])
-            comment.parent_comment = parent_comment
+        # 处理父评论
+        parent_id = form.cleaned_data.get('parent_comment_id')
+        if parent_id:
+            try:
+                comment.parent_comment = Comment.objects.get(pk=parent_id)
+            except Comment.DoesNotExist:
+                pass
 
-        comment.save(True)
+        comment.save()
 
         # 处理@提及
-        mentioned_users = parse_mentions(comment.body)
-        if mentioned_users:
-            comment.mentioned_users.set(mentioned_users)
+        if is_authenticated:
+            mentioned_users = parse_mentions(comment.body)
+            if mentioned_users:
+                comment.mentioned_users.set(mentioned_users)
 
+        # 成功提示并跳转到评论位置
+        messages.success(request, '评论发表成功！')
         return HttpResponseRedirect(
-            "%s#div-comment-%d" %
-            (article.get_absolute_url(), comment.pk))
+            "%s#div-comment-%d" % (article.get_absolute_url(), comment.pk))
 
 
 class CommentReactionView(View):

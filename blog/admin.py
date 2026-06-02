@@ -1,3 +1,5 @@
+import json
+
 from django import forms
 from django.contrib import admin
 from django.contrib.auth import get_user_model
@@ -43,6 +45,10 @@ class ArticlelAdmin(admin.ModelAdmin):
     list_per_page = 20
     search_fields = ('body', 'title')
     form = ArticleForm
+
+    class Media:
+        js = ('admin/js/mdeditor_paste_image.js',)
+
     list_display = (
         'id',
         'title',
@@ -110,8 +116,125 @@ class SideBarAdmin(admin.ModelAdmin):
     exclude = ('last_mod_time', 'creation_time')
 
 
+class BlogSettingsForm(forms.ModelForm):
+    """站点配置表单 - 含JSON验证"""
+
+    class Meta:
+        model = BlogSettings
+        fields = '__all__'
+        widgets = {
+            'resume_work_experience': forms.Textarea(attrs={
+                'rows': 12,
+                'style': 'font-family: monospace; font-size: 13px;',
+            }),
+            'resume_strengths': forms.Textarea(attrs={
+                'rows': 4,
+                'placeholder': '每行写一条优势，例如：\n5年Python开发经验，熟悉Django/Flask框架\n具备良好的代码规范和文档习惯\n有大型项目架构设计经验',
+            }),
+            'resume_job_expectation': forms.Textarea(attrs={
+                'rows': 2,
+                'placeholder': '如：Python开发工程师 | 深圳/上海 | 25-35K',
+            }),
+        }
+
+    def clean_resume_work_experience(self):
+        value = self.cleaned_data.get('resume_work_experience', '').strip()
+        if not value:
+            return value
+        try:
+            data = json.loads(value)
+        except json.JSONDecodeError as e:
+            raise forms.ValidationError(f'JSON格式错误: {e}')
+        if not isinstance(data, list):
+            raise forms.ValidationError('JSON格式错误：顶层必须是数组 [...]')
+        for i, item in enumerate(data):
+            if not isinstance(item, dict):
+                raise forms.ValidationError(f'第{i+1}项必须是对象 {{...}}')
+            for field in ('company', 'position', 'period'):
+                if field not in item:
+                    raise forms.ValidationError(f'第{i+1}项缺少必填字段: {field}')
+            if 'projects' in item and not isinstance(item['projects'], list):
+                raise forms.ValidationError(f'第{i+1}项的 projects 必须是数组')
+        return value
+
+
 class BlogSettingsAdmin(admin.ModelAdmin):
     """单例配置Admin - 直接跳转到编辑页面"""
+    form = BlogSettingsForm
+
+    fieldsets = (
+        ('🌐 基本站点设置', {
+            'fields': ('site_name', 'site_description', 'site_seo_description',
+                       'site_keywords', 'color_scheme')
+        }),
+        ('📝 功能设置', {
+            'fields': ('open_site_comment', 'comment_need_review',
+                       'article_sub_length', 'sidebar_article_count',
+                       'sidebar_comment_count', 'article_comment_count')
+        }),
+        ('👤 个人简历 — 基本信息', {
+            'description': '填写个人基本信息，将展示在 About 页面。',
+            'fields': ('resume_name', 'resume_avatar', 'resume_age',
+                       'resume_years_experience', 'resume_education',
+                       'resume_phone', 'resume_wechat')
+        }),
+        ('💼 个人简历 — 求职信息', {
+            'fields': ('resume_job_status', 'resume_job_expectation',
+                       'resume_strengths')
+        }),
+        ('🏢 个人简历 — 工作经历', {
+            'description': (
+                'JSON格式，顶层为数组，每项包含 company（公司）、position（职位）、'
+                'period（时间段）和 projects（项目数组）。'
+                '<br><details><summary style="cursor:pointer;color:#4f46e5;">'
+                '点击查看示例 ▸</summary>'
+                '<pre style="background:#f8f9fa;padding:12px;border-radius:6px;'
+                'font-size:12px;overflow-x:auto;margin-top:8px;">'
+                '[\n'
+                '  {\n'
+                '    "company": "XX科技有限公司",\n'
+                '    "position": "高级Python工程师",\n'
+                '    "period": "2022.06 - 至今",\n'
+                '    "projects": [\n'
+                '      {\n'
+                '        "name": "智能客服系统",\n'
+                '        "desc": "负责后端架构设计...",\n'
+                '        "tech": "Python, Django, Redis, Celery"\n'
+                '      }\n'
+                '    ]\n'
+                '  }\n'
+                ']</pre></details>'
+            ),
+            'fields': ('resume_work_experience',)
+        }),
+        ('🚀 个人简历 — 最近项目经历', {
+            'description': '支持Markdown格式，可以详细描述最近的项目经历、技术方案和成果。',
+            'fields': ('resume_recent_projects',)
+        }),
+        ('🎨 Portfolio', {
+            'classes': ('collapse',),
+            'fields': ('portfolio_hero_title', 'portfolio_hero_subtitle',
+                       'portfolio_skills', 'portfolio_experience',
+                       'portfolio_education', 'portfolio_contact_email',
+                       'portfolio_github', 'portfolio_linkedin')
+        }),
+        ('📊 广告与统计', {
+            'classes': ('collapse',),
+            'fields': ('show_google_adsense', 'google_adsense_codes',
+                       'analytics_code')
+        }),
+        ('📋 备案信息', {
+            'classes': ('collapse',),
+            'fields': ('beian_code', 'show_gongan_code', 'gongan_beiancode')
+        }),
+        ('⚙️ 自定义代码', {
+            'classes': ('collapse',),
+            'fields': ('global_header', 'global_footer')
+        }),
+    )
+
+    class Media:
+        js = ('admin/js/resume_json_helper.js',)
 
     def has_add_permission(self, request):
         """如果已经存在配置，则禁止添加"""

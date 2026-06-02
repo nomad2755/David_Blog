@@ -74,7 +74,6 @@ export default () => ({
       return;
     }
 
-    // 使用HTMX提交表单，不会导致整页刷新
     const form = document.getElementById('commentform');
     if (!form) {
       console.error('❌ Comment form not found');
@@ -94,9 +93,10 @@ export default () => ({
       bodyField.value = this.replyContent;
     }
 
-    // 触发HTMX提交（表单上已有hx-post属性）
-    console.log('💬 Submitting reply via HTMX...');
-    window.htmx.trigger(form, 'submit');
+    // 使用标准表单提交（页面会刷新，显示成功消息）
+    console.log('💬 Submitting reply...');
+    this.isLoading = true;
+    form.submit();
   },
 
   // ==================== 发布新评论 ====================

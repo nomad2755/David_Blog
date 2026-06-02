@@ -278,7 +278,7 @@ BOOTSTRAP_COLOR_TYPES = [
 PAGINATE_BY = 10
 # http cache timeout
 CACHE_CONTROL_MAX_AGE = 2592000
-# cache setting
+# cache setting - 优先使用Redis（多worker共享缓存），否则回退到本地内存
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
@@ -286,12 +286,24 @@ CACHES = {
         'LOCATION': 'unique-snowflake',
     }
 }
-# 使用redis作为缓存
-if os.environ.get("DJANGO_REDIS_URL"):
+# 使用redis作为缓存（环境变量或本地Redis）
+_redis_url = os.environ.get("DJANGO_REDIS_URL")
+if not _redis_url:
+    # 检测本地Redis是否可用
+    try:
+        import socket
+        _sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        _sock.settimeout(0.5)
+        _sock.connect(('127.0.0.1', 6379))
+        _sock.close()
+        _redis_url = '127.0.0.1:6379'
+    except (socket.error, OSError):
+        pass
+if _redis_url:
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-            'LOCATION': f'redis://{os.environ.get("DJANGO_REDIS_URL")}',
+            'LOCATION': f'redis://{_redis_url}',
         }
     }
 

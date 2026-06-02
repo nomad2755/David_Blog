@@ -15,7 +15,26 @@ class Comment(models.Model):
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name=_('author'),
-        on_delete=models.CASCADE)
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True)
+    # 游客评论字段
+    guest_name = models.CharField(
+        _('guest name'),
+        max_length=50,
+        blank=True,
+        default='',
+        help_text=_('游客昵称（未登录用户必填）'))
+    guest_email = models.EmailField(
+        _('guest email'),
+        blank=True,
+        default='',
+        help_text=_('游客邮箱（未登录用户必填，不会公开显示）'))
+    guest_website = models.URLField(
+        _('guest website'),
+        blank=True,
+        default='',
+        help_text=_('游客网站（选填）'))
     article = models.ForeignKey(
         Article,
         verbose_name=_('article'),
@@ -50,6 +69,38 @@ class Comment(models.Model):
 
     def __str__(self):
         return self.body
+
+    @property
+    def is_guest(self):
+        """是否为游客评论"""
+        return self.author is None
+
+    @property
+    def display_name(self):
+        """获取显示名称（兼容注册用户和游客）"""
+        if self.author:
+            return self.author.nickname or self.author.username
+        return self.guest_name or '匿名'
+
+    @property
+    def display_email(self):
+        """获取邮箱（兼容注册用户和游客，用于 Gravatar）"""
+        if self.author:
+            return self.author.email
+        return self.guest_email or ''
+
+    @property
+    def display_avatar_url(self):
+        """获取头像URL"""
+        if self.author:
+            from blog.templatetags.blog_tags import gravatar_url
+            return gravatar_url(self.author.email)
+        # 游客使用 Gravatar（如果提供了邮箱）或默认头像
+        if self.guest_email:
+            from blog.templatetags.blog_tags import gravatar_url
+            return gravatar_url(self.guest_email)
+        from django.templatetags.static import static
+        return static('blog/img/avatar.png')
 
     def get_reactions_summary(self, user=None):
         """
@@ -109,30 +160,32 @@ class Comment(models.Model):
         """发送评论通知"""
         from .utils import send_comment_notification
 
-        # 通知文章作者
-        if self.author != self.article.author:
+        # 通知文章作者（游客评论也需要通知博主）
+        if self.article.author != self.author:
             send_comment_notification(
                 recipient=self.article.author,
                 comment=self,
                 notification_type='article_comment'
             )
 
-        # 通知父评论作者
-        if self.parent_comment and self.parent_comment.author != self.author:
-            send_comment_notification(
-                recipient=self.parent_comment.author,
-                comment=self,
-                notification_type='reply'
-            )
-
-        # 通知@提及的用户
-        for user in self.mentioned_users.all():
-            if user != self.author:
+        # 通知父评论作者（仅当父评论作者是注册用户且不是当前评论者时）
+        if self.parent_comment and self.parent_comment.author:
+            if self.parent_comment.author != self.author:
                 send_comment_notification(
-                    recipient=user,
+                    recipient=self.parent_comment.author,
                     comment=self,
-                    notification_type='mention'
+                    notification_type='reply'
                 )
+
+        # 通知@提及的用户（仅注册用户可被@提及）
+        if self.author:
+            for user in self.mentioned_users.all():
+                if user != self.author:
+                    send_comment_notification(
+                        recipient=user,
+                        comment=self,
+                        notification_type='mention'
+                    )
 
 
 class CommentReaction(models.Model):
