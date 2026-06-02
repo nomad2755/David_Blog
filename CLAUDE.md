@@ -66,7 +66,6 @@ systemctl restart djangoblog
 
 ## 待处理
 
-- [ ] 代码推送到 GitHub（服务器无法直连 github.com:443）
 - [ ] 配置 HTTPS（Let's Encrypt）
 - [ ] 生产环境切换 MySQL
 - [ ] 修改管理员默认密码
